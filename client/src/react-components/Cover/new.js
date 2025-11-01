@@ -118,11 +118,11 @@ export default function NewCover() {
             }
           }}
         >
-          <DialogTitle id="form-dialog-title">New Cover Letter</DialogTitle>
+          <DialogTitle id="form-dialog-title">New Page</DialogTitle>
           <DialogContent>
             <DialogContentText>
               <span style={{ color: "#FFFFFFDE" }}>
-                To create a new cover letter, please enter the title below.
+                To create a new page, please enter the title below.
               </span>
             </DialogContentText>
             <TextField

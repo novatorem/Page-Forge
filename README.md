@@ -1,8 +1,8 @@
-# Cover Hack
+# Page Forge
 
-A custom cover letter creator that allows you to dynamically create cover letters through the use of a custom markdown solution. This webapp was built with React, Node, and MongoDB - alongside some other frameworks like express, bcrypt, and mui. 
+A dynamic page creator that allows you to forge custom pages through the use of a custom markdown solution. This webapp was built with React, Node, and MongoDB - alongside some other frameworks like express, bcrypt, and mui. 
 
-[Use it here!](https://cover-hack.novac.dev/)
+[Use it here!](https://page-forge.novac.dev/)
 
 Preview:
 
@@ -10,7 +10,7 @@ Preview:
 
 ## Overview
 
-When writing templates, you can use the custom symbols below to insert interactive modules in the cover letter.
+When writing templates, you can use the custom symbols below to insert interactive modules in your page.
 
 Name | Text | Symbol | Comment
 --- | --- | :---: | ---
@@ -90,7 +90,7 @@ Alternatively, you can run `npm run-script build-run` in the root directory whic
 ### Directory Structure
 
 ```
-Cover Hack
+Page Forge
 ├── db
 │   └── mongoose.js
 ├── models

@@ -191,7 +191,7 @@ class Login extends BaseReactComponent {
                   className="login__button"
                   onClick={() =>
                     window.open(
-                      "https://github.com/novatorem/Cover-Hack",
+                      "https://github.com/novatorem/Page-Forge",
                       "_blank"
                     )
                   }

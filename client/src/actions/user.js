@@ -99,7 +99,7 @@ export const register = event => {
     .then(json => {
       if (json !== undefined) {
         // Successful registration
-        // Create the sample cover letter
+        // Create the sample page
         defaultCover(json._id);
         setState("registered", true);
         setTimeout(function() {

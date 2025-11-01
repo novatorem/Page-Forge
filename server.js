@@ -53,7 +53,8 @@ app.post("/users/login", (req, res) => {
       res.send({ currentUser: user.username, userID: user._id });
     })
     .catch(error => {
-      res.status(400).send();
+      log('Login error:', error);
+      res.status(400).send({ error: 'Invalid username or password' });
     });
 });
 
@@ -92,8 +93,12 @@ app.post("/users/register", (req, res) => {
       res.send(user);
     },
     error => {
-      log(error);
-      res.status(400).send(error); // 400 for bad request
+      log('Registration error:', error);
+      if (error.code === 11000) {
+        res.status(400).send({ error: 'Username already exists' });
+      } else {
+        res.status(400).send({ error: error.message || 'Registration failed' });
+      }
     }
   );
 });
@@ -102,8 +107,8 @@ app.post("/users/register", (req, res) => {
 
 /*** API Routes below ************************************/
 
-/** Cover letter resource routes **/
-// a POST request to create a user's cover letter
+/** Page resource routes **/
+// a POST request to create a user's page
 app.post("/covers/new", (req, res) => {
   log(req.body);
   const coverID = new mongoose.Types.ObjectId().toHexString();

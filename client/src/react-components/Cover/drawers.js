@@ -126,7 +126,7 @@ export default function VerticalDrawer(props) {
   const [cover, setCover] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [content, setContent] = useState(defaultContent);
-  const [title, setTitle] = useState("Welcome to Cover Hack!");
+  const [title, setTitle] = useState("Welcome to Page Forge!");
   const [selectedIndex, setSelectedIndex] = React.useState(null);
 
   const handleListItemClick = (event, index) => {
@@ -166,7 +166,7 @@ export default function VerticalDrawer(props) {
     setCover(null);
     setState("cover", null);
     setContent(defaultContent);
-    setTitle("Welcome to Cover Hack!");
+    setTitle("Welcome to Page Forge!");
     setSelectedIndex(-1);
   };
 
@@ -266,10 +266,10 @@ export default function VerticalDrawer(props) {
         >
           <div className={classes.drawerHeader}>
             <Button onClick={resetContent} className={classes.button}>
-              Cover Hack
+              Page Forge
             </Button>
             {/*<Typography align="left" variant="subtitle1">
-              Cover Letters
+              Pages
             </Typography>*/}
             <IconButton onClick={handleDrawerClose}>
               <ChevronLeftIcon />
@@ -277,7 +277,7 @@ export default function VerticalDrawer(props) {
           </div>
           <Divider />
           <List>
-            {/* Drawer List - Populates all the cover letters on the drawer */}
+            {/* Drawer List - Populates all the pages on the drawer */}
             {props.userCovers
               ? props.userCovers.map(userCover => {
                   return (function() {

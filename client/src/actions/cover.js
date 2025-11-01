@@ -162,7 +162,7 @@ I have a {proven track record of professionalism and efficiency to foster custom
 
 {*}
 
-Please find my resume attached with this cover letter. I hope to have a personal meeting to discuss how I can make a difference through this new opportunity.           
+This is a sample page template that demonstrates the dynamic features of Page Forge. Customize it to create your own content.           
 
 Thank you for your time. I look forward to meeting with you.
 
@@ -177,7 +177,7 @@ Best Regards,
     method: "post",
     body: JSON.stringify({
       owner: userID,
-      title: "Sample Cover",
+      title: "Sample Page",
       data: data
     }),
     headers: {

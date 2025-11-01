@@ -57,7 +57,7 @@ export default function Info(props) {
   return (
     <ThemeProvider theme={darkTheme}>
       <Dialog fullWidth={true} maxWidth="lg" open={true} onClose={handleClose}>
-        <DialogTitle id="max-width-dialog-title">Cover Hack</DialogTitle>
+        <DialogTitle id="max-width-dialog-title">Page Forge</DialogTitle>
         <Divider />
         <DialogContent>
           <DialogContentText>Hi there, {props.currentUser}!</DialogContentText>
@@ -91,7 +91,7 @@ export default function Info(props) {
             variant="outlined"
             color="default"
             fullWidth
-            href="https://github.com/novatorem/Cover-Hack"
+            href="https://github.com/novatorem/Page-Forge"
           >
             GitHub
           </Button>

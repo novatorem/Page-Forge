@@ -63,11 +63,11 @@ export default function Delete(props) {
         aria-labelledby="draggable-dialog-title"
       >
         <DialogTitle style={{ cursor: "move" }} id="draggable-dialog-title">
-          Delete Cover
+          Delete Page
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            To delete, please re-enter the title of the cover letter you'd like
+            To delete, please re-enter the title of the page you'd like
             to delete ({props.title}).
           </DialogContentText>
           <TextField
@@ -75,7 +75,7 @@ export default function Delete(props) {
             error={error}
             margin="dense"
             id="title"
-            label="Cover Letter Title"
+            label="Page Title"
             helperText={helperText}
             type="title"
             fullWidth

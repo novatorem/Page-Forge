@@ -36,7 +36,7 @@ export const setEmptyState = () => {
 
   setState(
     "introCover",
-    `I've gone ahead and created a sample cover letter for you. You can create your own or access the sample by clicking the hamburger menu on the top left corner of the page.
+    `I've gone ahead and created a sample page for you. You can create your own or access the sample by clicking the hamburger menu on the top left corner of the page.
 
 For a quick guide, you can create input forms with {_}.
 
@@ -58,9 +58,9 @@ If you have any questions, comments, or issues, please open a story on github.
   );
 
   setState("tryCover", {
-    data: `Hello, and welcome to Cover Hack! The way this web-app works is by requiring you, the user, to first provide the "markdown".
+    data: `Hello, and welcome to Page Forge! The way this web-app works is by requiring you, the user, to first provide the "markdown".
 
-You'll notice that the left side is the "hack" where you provide the raw text. On the right side, the "true", version appears. The hacked together cover letter then provides the fields for you to work with.
+You'll notice that the left side is where you provide the raw text. On the right side, the formatted version appears. Your forged page then provides the fields for you to work with.
 
 For a quick guide, you can create input forms with {_}.
 
