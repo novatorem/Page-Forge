@@ -1,33 +1,18 @@
-import React from "react";
+import { useEffect } from "react";
 
 import MainView from "./MainView";
 import Login from "./react-components/Login";
-import HttpsRedirect from "react-https-redirect";
-import BaseReactComponent from "./react-components/BaseReactComponent";
+import useAppStore from "./store";
 
 import { readCookie } from "./actions/user";
 
 import "./App.css";
 
-class App extends BaseReactComponent {
-  filterState({ currentUser }) {
-    return { currentUser };
-  }
+export default function App() {
+  useEffect(() => { readCookie(); }, []);
+  const currentUser = useAppStore(state => state.currentUser);
 
-  constructor(props) {
-    super(props);
-    readCookie();
-  }
-
-  render() {
-    const { currentUser } = this.state;
-
-    return (
-      <HttpsRedirect>
-        <div className="app">{!currentUser ? <Login /> : <MainView />}</div>
-      </HttpsRedirect>
-    );
-  }
+  return (
+    <div className="app">{!currentUser ? <Login /> : <MainView />}</div>
+  );
 }
-
-export default App;

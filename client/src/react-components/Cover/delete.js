@@ -1,40 +1,53 @@
-import React from "react";
-import Draggable from "react-draggable";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import TextField from "@material-ui/core/TextField";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
+import { useState, useRef } from "react";
+import Paper from "@mui/material/Paper";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import TextField from "@mui/material/TextField";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
 
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "../../theme";
 
-import { setState } from "statezero";
+import { setState } from "../../store";
 import { deleteUserCover } from "../../actions/cover";
 
 function PaperComponent(props) {
-  return (
-    <Draggable
-      handle="#draggable-dialog-title"
-      cancel={'[class*="MuiDialogContent-root"]'}
-    >
-      <Paper {...props} />
-    </Draggable>
-  );
+  const paperRef = useRef(null);
+  const drag = useRef({ startX: 0, startY: 0, posX: 0, posY: 0 });
+
+  const handlePointerDown = e => {
+    if (!e.target.closest("#delete-dialog-title")) return;
+    e.preventDefault();
+    drag.current.startX = e.clientX - drag.current.posX;
+    drag.current.startY = e.clientY - drag.current.posY;
+
+    const onMove = e => {
+      drag.current.posX = e.clientX - drag.current.startX;
+      drag.current.posY = e.clientY - drag.current.startY;
+      if (paperRef.current) {
+        paperRef.current.style.transform =
+          `translate(${drag.current.posX}px, ${drag.current.posY}px)`;
+      }
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
+  return <Paper ref={paperRef} onPointerDown={handlePointerDown} {...props} />;
 }
 
-const darkTheme = createMuiTheme({
-  palette: {
-    type: "dark"
-  }
-});
 
 export default function Delete(props) {
-  const [value, setValue] = React.useState("");
-  const [error, setError] = React.useState(false);
-  const [helperText, setHelperText] = React.useState("");
+  const [value, setValue] = useState("");
+  const [error, setError] = useState(false);
+  const [helperText, setHelperText] = useState("");
 
   const handleChange = event => {
     setValue(event.target.value);
@@ -55,14 +68,14 @@ export default function Delete(props) {
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <Dialog
         open={true}
         onClose={handleClose}
         PaperComponent={PaperComponent}
-        aria-labelledby="draggable-dialog-title"
+        aria-labelledby="delete-dialog-title"
       >
-        <DialogTitle style={{ cursor: "move" }} id="draggable-dialog-title">
+        <DialogTitle id="delete-dialog-title" style={{ cursor: "move" }}>
           Delete Page
         </DialogTitle>
         <DialogContent>
@@ -82,14 +95,14 @@ export default function Delete(props) {
             value={value}
             onChange={handleChange}
             onKeyDown={e => {
-              if (e.keyCode === 13) {
+              if (e.key === 'Enter') {
                 handleDelete();
               }
             }}
           />
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleClose} color="default">
+          <Button autoFocus onClick={handleClose}>
             Cancel
           </Button>
           <Button onClick={handleDelete} color="secondary">

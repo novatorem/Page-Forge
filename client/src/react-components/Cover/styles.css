@@ -3,7 +3,7 @@
   width: inherit;
   margin: 10px;
   border-radius: 3px;
-  background-color: #303030FE;
+  background-color: var(--bg-surface);
 }
 
 .newCover {

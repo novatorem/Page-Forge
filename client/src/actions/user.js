@@ -1,7 +1,7 @@
 // getState is used to get the value of a state path
 // setState is used to set the value of a state path
-import { getState, setState } from "statezero";
-import { setEmptyState } from "./helpers";
+import { getState, setState } from "../store";
+import { setEmptyState, autoHide } from "./helpers";
 import { getUserCovers, defaultCover } from "./cover";
 
 export const readCookie = () => {
@@ -49,9 +49,7 @@ export const login = () => {
         return res.json();
       } else {
         setState("failedLogin", true);
-        setTimeout(function() {
-          setState("failedLogin", false);
-        }, 3250);
+        autoHide("failedLogin");
 
         setState("loginClick", false);
       }
@@ -68,9 +66,7 @@ export const login = () => {
     .catch(error => {
       if (getState("failedLogin") !== true) {
         setState("loginError", true);
-        setTimeout(function() {
-          setState("loginError", false);
-        }, 3250);
+        autoHide("loginError");
       }
 
       setState("loginClick", false);
@@ -102,22 +98,16 @@ export const register = event => {
         // Create the sample page
         defaultCover(json._id);
         setState("registered", true);
-        setTimeout(function() {
-          setState("registered", false);
-        }, 3250);
+        autoHide("registered");
         login();
       } else if (getState("loginForm").password.length < 6) {
         // Short password
         setState("passwordShort", true);
-        setTimeout(function() {
-          setState("passwordShort", false);
-        }, 3250);
+        autoHide("passwordShort");
       } else {
         // Invalid username
         setState("invalidUsername", true);
-        setTimeout(function() {
-          setState("invalidUsername", false);
-        }, 3250);
+        autoHide("invalidUsername");
       }
     })
     .catch(error => {

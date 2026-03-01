@@ -1,6 +1,7 @@
 // getState is used to get the value of a state path
 // setState is used to set the value of a state path
-import { getState, setState } from "statezero";
+import { getState, setState } from "../store";
+import { autoHide } from "./helpers";
 
 export const newCover = title => {
   const url = "/covers/new";
@@ -26,14 +27,9 @@ export const newCover = title => {
     .then(res => {
       if (res.status === 200) {
         setState("coverSuccess", true);
-        setTimeout(function() {
-          setState("coverSuccess", false);
-        }, 3250);
+        autoHide("coverSuccess");
         getUserCovers();
-        
         setState("cover", userCover);
-        
-        return res.json();
       }
     })
     .catch(error => {
@@ -52,7 +48,7 @@ export const getUserCovers = () => {
         // return a promise that resolves with the JSON body
         return res.json();
       } else {
-        alert("Could not get anything");
+        console.error("Failed to load covers:", res.status);
       }
     })
     .then(json => {
@@ -64,18 +60,9 @@ export const getUserCovers = () => {
     });
 };
 
-export const saveUserCover = async () => {
-  // Wait 0.5 seconds to make sure the state is updated
-  await new Promise(resolve => setTimeout(resolve, 500));
+export const saveUserCover = () => {
   const cover = getState("cover");
-
-  // Oddly, it's _id for some, id for others
-  let url;
-  if (cover._id !== undefined) {
-    url = "/covers/" + cover._id;
-  } else {
-    url = "/covers/" + cover.id;
-  }
+  const url = "/covers/" + cover._id;
 
   const request = new Request(url, {
     method: "PATCH",
@@ -93,9 +80,7 @@ export const saveUserCover = async () => {
     .then(res => {
       if (res.status === 200) {
         setState("saveSuccess", true);
-        setTimeout(function() {
-          setState("saveSuccess", false);
-        }, 3250);
+        autoHide("saveSuccess");
         return res.json();
       } else {
         console.log(res);
@@ -106,18 +91,9 @@ export const saveUserCover = async () => {
     });
 };
 
-export const deleteUserCover = async () => {
-  // Wait 0.5 seconds to make sure the state is updated
-  await new Promise(resolve => setTimeout(resolve, 500));
+export const deleteUserCover = () => {
   const cover = getState("cover");
-
-  // Oddly, it's _id for some, id for others
-  let url;
-  if (cover._id !== undefined) {
-    url = "/covers/" + cover._id;
-  } else {
-    url = "/covers/" + cover.id;
-  }
+  const url = "/covers/" + cover._id;
 
   const request = new Request(url, {
     method: "DELETE",
@@ -135,9 +111,7 @@ export const deleteUserCover = async () => {
     .then(res => {
       if (res.status === 200) {
         setState("deleteSuccess", true);
-        setTimeout(function() {
-          setState("deleteSuccess", false);
-        }, 3250);
+        autoHide("deleteSuccess");
         getUserCovers();
         return res.json();
       } else {
@@ -193,7 +167,6 @@ Best Regards,
         setTimeout(function() {
           getUserCovers();
         }, 2000);
-        return res.json();
       }
     })
     .catch(error => {

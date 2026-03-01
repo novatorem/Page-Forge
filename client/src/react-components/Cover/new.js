@@ -1,65 +1,40 @@
-import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import Fab from "@material-ui/core/Fab";
-import AddIcon from "@material-ui/icons/Add";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
+import { useState } from "react";
+import Fab from "@mui/material/Fab";
+import AddIcon from "@mui/icons-material/Add";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import baseTheme from "../../theme";
 
-import { setState, getState } from "statezero";
+import { setState } from "../../store";
 import { newCover } from "../../actions/cover";
+import { autoHide } from "../../actions/helpers";
 
 import "./styles.css";
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    "& > *": {
-      margin: theme.spacing(1)
-    }
-  },
-  extendedIcon: {
-    marginRight: theme.spacing(1)
-  },
-  overrides: {
-    DialogContentText: {
-      root: {
-        color: "#00FF00"
-      }
-    }
-  }
-}));
-
-const theme = createMuiTheme({
-  overrides: {
+const theme = createTheme(baseTheme, {
+  components: {
     MuiInput: {
-      underline: {
-        "&:before": {
-          borderBottom: "1px solid #FFFFFF44"
-        },
-        "&:hover": {
-          borderBottom: "1px solid #FFFFFF88"
-        },
-        "&:hover:not($disabled):after": {
-          borderBottom: "1px solid #FFFFFF"
-        },
-        "&:hover:not($disabled):before": {
-          borderBottom: "1px solid #FFFFFFAA"
-        },
-        "&:after": {
-          borderBottom: "1px solid #FFFFFF44"
+      styleOverrides: {
+        underline: {
+          "&:before": { borderBottom: "1px solid #FFFFFF44" },
+          "&:hover": { borderBottom: "1px solid #FFFFFF88" },
+          "&:hover:not(.Mui-disabled):after": { borderBottom: "1px solid #FFFFFF" },
+          "&:hover:not(.Mui-disabled):before": { borderBottom: "1px solid #FFFFFFAA" },
+          "&:after": { borderBottom: "1px solid #FFFFFF44" }
         }
       }
     },
     MuiInputLabel: {
-      root: {
-        color: "#FFFFFFDC",
-        "&$focused": {
-          color: "#FFFFFF"
+      styleOverrides: {
+        root: {
+          color: "#FFFFFFDC",
+          "&.Mui-focused": { color: "#FFFFFF" }
         }
       }
     }
@@ -67,10 +42,8 @@ const theme = createMuiTheme({
 });
 
 export default function NewCover() {
-  const classes = useStyles();
-
-  const [open, setOpen] = React.useState(false);
-  const [name, setName] = React.useState("");
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
 
   const handleChange = event => {
     setName(event.target.value);
@@ -86,22 +59,18 @@ export default function NewCover() {
 
   const handleCreate = () => {
     setOpen(false);
-    console.log(open);
-
     //Early error detection
-    if ((name.length > 12) ^ (name.length < 1)) {
+    if (name.length > 12 || name.length < 1) {
       setState("coverShort", true);
-      setTimeout(function() {
-        setState("coverShort", false);
-      }, 3250);
+      autoHide("coverShort");
     } else {
       newCover(name);
     }
   };
 
   return (
-    <MuiThemeProvider theme={theme}>
-      <div className={classes.root}>
+    <ThemeProvider theme={theme}>
+      <>
         <div className="newCover">
           <Fab color="primary" aria-label="add" onClick={handleClickOpen}>
             <AddIcon />
@@ -111,19 +80,11 @@ export default function NewCover() {
           open={open}
           onClose={handleClose}
           aria-labelledby="form-dialog-title"
-          PaperProps={{
-            style: {
-              backgroundColor: "#393939",
-              color: "#FFFFFFDE"
-            }
-          }}
         >
           <DialogTitle id="form-dialog-title">New Page</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              <span style={{ color: "#FFFFFFDE" }}>
-                To create a new page, please enter the title below.
-              </span>
+              To create a new page, please enter the title below.
             </DialogContentText>
             <TextField
               value={name}
@@ -134,13 +95,8 @@ export default function NewCover() {
               label="Title"
               type="text"
               fullWidth
-              InputProps={{
-                style: {
-                  color: "#FFFFFFDE"
-                }
-              }}
               onKeyDown={e => {
-                if (e.keyCode === 13) {
+                if (e.key === 'Enter') {
                   handleCreate();
                 }
               }}
@@ -150,7 +106,7 @@ export default function NewCover() {
             <Button
               onClick={handleClose}
               color="secondary"
-              fullWidth="true"
+              fullWidth={true}
               variant="outlined"
             >
               Cancel
@@ -158,14 +114,14 @@ export default function NewCover() {
             <Button
               onClick={handleCreate}
               color="primary"
-              fullWidth="true"
+              fullWidth={true}
               variant="contained"
             >
               Create
             </Button>
           </DialogActions>
         </Dialog>
-      </div>
-    </MuiThemeProvider>
+      </>
+    </ThemeProvider>
   );
 }

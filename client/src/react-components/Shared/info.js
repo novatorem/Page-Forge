@@ -1,27 +1,22 @@
 import React from "react";
-import Paper from "@material-ui/core/Paper";
-import Table from "@material-ui/core/Table";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import Divider from "@material-ui/core/Divider";
-import TableRow from "@material-ui/core/TableRow";
-import TableBody from "@material-ui/core/TableBody";
-import TableHead from "@material-ui/core/TableHead";
-import TableCell from "@material-ui/core/TableCell";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import TableContainer from "@material-ui/core/TableContainer";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import Divider from "@mui/material/Divider";
+import TableRow from "@mui/material/TableRow";
+import TableBody from "@mui/material/TableBody";
+import TableHead from "@mui/material/TableHead";
+import TableCell from "@mui/material/TableCell";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import TableContainer from "@mui/material/TableContainer";
+import DialogContentText from "@mui/material/DialogContentText";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "../../theme";
 
-import { setState } from "statezero";
-
-const darkTheme = createMuiTheme({
-  palette: {
-    type: "dark"
-  }
-});
+import { setState } from "../../store";
 
 function createData(name, text, symbol, comment) {
   return { name, text, symbol, comment };
@@ -55,7 +50,7 @@ export default function Info(props) {
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <Dialog fullWidth={true} maxWidth="lg" open={true} onClose={handleClose}>
         <DialogTitle id="max-width-dialog-title">Page Forge</DialogTitle>
         <Divider />
@@ -89,7 +84,6 @@ export default function Info(props) {
           <br /> <br />
           <Button
             variant="outlined"
-            color="default"
             fullWidth
             href="https://github.com/novatorem/Page-Forge"
           >

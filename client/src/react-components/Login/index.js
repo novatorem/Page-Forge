@@ -1,85 +1,94 @@
-import React from "react";
-import { useEffect, useMemo, useState } from "react";
-import Button from "@material-ui/core/Button";
-import Divider from "@material-ui/core/Divider";
-import CloseIcon from "@material-ui/icons/Close";
-import TextField from "@material-ui/core/TextField";
-import IconButton from "@material-ui/core/IconButton";
-import Typography from "@material-ui/core/Typography";
-import BaseReactComponent from "./../BaseReactComponent";
-import LinearProgress from "@material-ui/core/LinearProgress";
+import { useState } from "react";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import CloseIcon from "@mui/icons-material/Close";
+import TextField from "@mui/material/TextField";
+import IconButton from "@mui/material/IconButton";
+import LinearProgress from "@mui/material/LinearProgress";
+import { useShallow } from "zustand/react/shallow";
 
-import {
-  MuiThemeProvider,
-  createMuiTheme,
-  withStyles
-} from "@material-ui/core/styles";
+import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
+import baseTheme from "../../theme";
 
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-
-// Importing actions/required methods
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
 
 import Page from "../Cover/page";
 import Password from "./password";
 import Snackbar from "../Shared/snackbar";
-import { setState, getState } from "statezero";
+import useAppStore from "../../store";
+
 import { updateLoginForm, login, register } from "../../actions/user";
 
 import "./styles.css";
 import "./../../App.css";
 
-const MUIDialogContent = withStyles(theme => ({
-  root: {
-    overflow: "scroll",
-    scrollbarWidth: "none"
-  }
-}))(DialogContent);
-
-const MUILinearProgress = withStyles(theme => ({
-  root: {
-    margin: "2rem"
-  }
-}))(LinearProgress);
-
-const theme = createMuiTheme({
-  palette: {
-    type: "dark"
-  }
+const MUIDialogContent = styled(DialogContent)({
+  overflow: "scroll",
+  scrollbarWidth: "none"
 });
 
-const styles = theme => ({
-  closeButton: {
-    position: "absolute",
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500]
-  }
+const MUILinearProgress = styled(LinearProgress)({
+  margin: "2rem"
 });
 
-const MUIDialogTitle = withStyles(styles)(props => {
-  const { children, classes, onClose, ...other } = props;
+function MUIDialogTitle(props) {
+  const { children, onClose, ...other } = props;
   return (
-    <DialogTitle disableTypography className={classes.root} {...other}>
-      <Typography variant="h6">{children}</Typography>
+    <DialogTitle {...other}>
+      {children}
       {onClose ? (
         <IconButton
           aria-label="close"
-          className={classes.closeButton}
           onClick={onClose}
+          sx={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            color: theme => theme.palette.grey[500]
+          }}
         >
           <CloseIcon />
         </IconButton>
       ) : null}
     </DialogTitle>
   );
+}
+
+const theme = createTheme(baseTheme, {
+  components: {
+    MuiInput: {
+      styleOverrides: {
+        underline: {
+          "&:before":                          { borderBottom: "1px solid #FFFFFF44" },
+          "&:hover:not(.Mui-disabled):before": { borderBottom: "1px solid #FFFFFFAA" },
+          "&:after":                           { borderBottom: "1px solid #FFFFFF44" }
+        }
+      }
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          color: "#FFFFFFDC",
+          "&.Mui-focused": { color: "#FFFFFF" }
+        }
+      }
+    },
+    MuiInputBase: {
+      styleOverrides: { root: { color: "#FFFFFFDE" } }
+    },
+    MuiIconButton: {
+      styleOverrides: { root: { color: "#FFFFFFDC" } }
+    }
+  }
 });
 
-class Login extends BaseReactComponent {
-  // Prepare all the snackbars
-  filterState({
+export default function Login() {
+  const [trying, setTrying] = useState(false);
+  const [rightPanelActive, setRightPanelActive] = useState(true);
+
+  const {
     loginClick,
     loginError,
     failedLogin,
@@ -87,193 +96,165 @@ class Login extends BaseReactComponent {
     passwordShort,
     registered,
     tryCover
-  }) {
-    return {
-      loginClick,
-      loginError,
-      failedLogin,
-      invalidUsername,
-      passwordShort,
-      registered,
-      tryCover
-    };
-  }
-  constructor(props) {
-    super(props);
+  } = useAppStore(
+    useShallow(state => ({
+      loginClick: state.loginClick,
+      loginError: state.loginError,
+      failedLogin: state.failedLogin,
+      invalidUsername: state.invalidUsername,
+      passwordShort: state.passwordShort,
+      registered: state.registered,
+      tryCover: state.tryCover
+    }))
+  );
 
-    this.state = { trying: false, switch: true };
-    this.handleOpen = e => {
-      e.preventDefault();
-      this.setState({ trying: true });
-    };
-    this.handleClose = e => {
-      e.preventDefault();
-      this.setState({ trying: false });
-    };
-  }
+  const handleOpen = e => {
+    e.preventDefault();
+    setTrying(true);
+  };
 
-  render() {
-    const {
-      loginClick,
-      loginError,
-      failedLogin,
-      invalidUsername,
-      passwordShort,
-      registered,
-      tryCover
-    } = this.state;
-    return (
-      <MuiThemeProvider theme={theme}>
-        <div className="login__bg-image center">
-          <div
-            className={`container center ${
-              this.state.switch ? "right-panel-active" : null
-            }`}
-          >
-            <div className="container__form container--signup">
-              <form action="#" class="form center" id="form1">
-                <h2 className="form__title">Sign Up</h2>
-                <TextField
-                  name="username"
-                  label="Username"
-                  className="login__input app__input app__horizontal-center"
-                  margin="normal"
-                  autoFocus="true"
-                  InputProps={{
-                    style: {
-                      color: "#FFFFFFDE"
-                    }
-                  }}
-                  onChange={e => updateLoginForm(e.target)}
-                  onKeyDown={e => {
-                    if (e.keyCode === 13) {
-                      register();
-                    }
-                  }}
-                />
-                <Password login={false} />
-                <Button className="login__button" onClick={register}>
-                  Register
-                </Button>
-                <Button className="login__button" onClick={this.handleOpen}>
-                  Try Me
-                </Button>
-              </form>
-            </div>
+  const handleClose = e => {
+    e.preventDefault();
+    setTrying(false);
+  };
 
-            <div className="container__form container--signin">
-              <form action="#" class="form center" id="form2">
-                <h2 className="form__title">Sign In</h2>
-                <TextField
-                  name="username"
-                  label="Username"
-                  className="login__input app__input app__horizontal-center"
-                  margin="normal"
-                  autoFocus="true"
-                  InputProps={{
-                    style: {
-                      color: "#FFFFFFDE"
-                    }
-                  }}
-                  onChange={e => updateLoginForm(e.target)}
-                  onKeyDown={e => {
-                    if (e.keyCode === 13) {
-                      login();
-                    }
-                  }}
-                />
-                <Password login={true} />
-
-                <Button className="login__button" onClick={login}>
-                  Log In
-                </Button>
-                <Button
-                  className="login__button"
-                  onClick={() =>
-                    window.open(
-                      "https://github.com/novatorem/Page-Forge",
-                      "_blank"
-                    )
+  return (
+    <ThemeProvider theme={theme}>
+      <div className="login__bg-image center">
+        <div
+          className={`container center ${
+            rightPanelActive ? "right-panel-active" : null
+          }`}
+        >
+          <div className="container__form container--signup">
+            <form action="#" className="form center" id="form1">
+              <h2 className="form__title">Sign Up</h2>
+              <TextField
+                name="username"
+                label="Username"
+                variant="standard"
+                className="login__input app__input app__horizontal-center"
+                margin="none"
+                autoFocus={true}
+                onChange={e => updateLoginForm(e.target)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    register();
                   }
-                >
-                  Info
-                </Button>
-              </form>
-            </div>
+                }}
+              />
+              <Password login={false} />
+              <Button className="login__button" onClick={register}>
+                Register
+              </Button>
+              <Button className="login__button" onClick={handleOpen}>
+                Try Me
+              </Button>
+            </form>
+          </div>
 
-            <div className="container__overlay">
-              <div className="overlay">
-                <div className="overlay__panel overlay--left">
-                  <button
-                    className="btn"
-                    id="signIn"
-                    onClick={() =>
-                      this.setState({ switch: !this.state.switch })
-                    }
-                  >
-                    Sign In
-                  </button>
-                </div>
-                <div className="overlay__panel overlay--right">
-                  <button
-                    className="btn"
-                    id="signUp"
-                    onClick={() =>
-                      this.setState({ switch: !this.state.switch })
-                    }
-                  >
-                    Sign Up
-                  </button>
-                </div>
+          <div className="container__form container--signin">
+            <form action="#" className="form center" id="form2">
+              <h2 className="form__title">Sign In</h2>
+              <TextField
+                name="username"
+                label="Username"
+                variant="standard"
+                className="login__input app__input app__horizontal-center"
+                margin="none"
+                autoFocus={true}
+                onChange={e => updateLoginForm(e.target)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    login();
+                  }
+                }}
+              />
+              <Password login={true} />
+
+              <Button className="login__button" onClick={login}>
+                Log In
+              </Button>
+              <Button
+                className="login__button"
+                onClick={() =>
+                  window.open(
+                    "https://github.com/novatorem/Page-Forge",
+                    "_blank"
+                  )
+                }
+              >
+                Info
+              </Button>
+            </form>
+          </div>
+
+          <div className="container__overlay">
+            <div className="overlay">
+              <div className="overlay__panel overlay--left">
+                <button
+                  className="btn"
+                  id="signIn"
+                  onClick={() => setRightPanelActive(v => !v)}
+                >
+                  Sign In
+                </button>
+              </div>
+              <div className="overlay__panel overlay--right">
+                <button
+                  className="btn"
+                  id="signUp"
+                  onClick={() => setRightPanelActive(v => !v)}
+                >
+                  Sign Up
+                </button>
               </div>
             </div>
           </div>
-          <Dialog
-            maxWidth={false}
-            open={this.state.trying}
-            onClose={this.handleClose}
-          >
-            <MUIDialogTitle onClose={this.handleClose}>Try Me</MUIDialogTitle>
-            <Divider />
-            <MUIDialogContent dividers={false}>
-              <Page cover={tryCover} />
-            </MUIDialogContent>
-          </Dialog>
-
-          {loginClick === true && <MUILinearProgress />}
-
-          {/* Snackbars for notifications */}
-          {loginError === true && (
-            <Snackbar
-              severity="error"
-              message="Error logging in, please refresh. If this continues, post an issue on github."
-            />
-          )}
-          {failedLogin === true && (
-            <Snackbar
-              severity="error"
-              message="Invalid username/password combination"
-            />
-          )}
-          {invalidUsername === true && (
-            <Snackbar
-              severity="error"
-              message="Failed to register, choose a different username"
-            />
-          )}
-          {passwordShort === true && (
-            <Snackbar
-              severity="warning"
-              message="Password too short, minimum of 6 characters"
-            />
-          )}
-          {registered === true && (
-            <Snackbar severity="success" message="Registered, welcome!" />
-          )}
         </div>
-      </MuiThemeProvider>
-    );
-  }
-}
+        <Dialog
+          maxWidth={false}
+          open={trying}
+          onClose={handleClose}
+        >
+          <MUIDialogTitle onClose={handleClose}>Try Me</MUIDialogTitle>
+          <Divider />
+          <MUIDialogContent dividers={false}>
+            {tryCover && <Page cover={tryCover} />}
+          </MUIDialogContent>
+        </Dialog>
 
-export default Login;
+        {loginClick === true && <MUILinearProgress />}
+
+        {/* Snackbars for notifications */}
+        {loginError === true && (
+          <Snackbar
+            severity="error"
+            message="Error logging in, please refresh. If this continues, post an issue on github."
+          />
+        )}
+        {failedLogin === true && (
+          <Snackbar
+            severity="error"
+            message="Invalid username/password combination"
+          />
+        )}
+        {invalidUsername === true && (
+          <Snackbar
+            severity="error"
+            message="Failed to register, choose a different username"
+          />
+        )}
+        {passwordShort === true && (
+          <Snackbar
+            severity="warning"
+            message="Password too short, minimum of 6 characters"
+          />
+        )}
+        {registered === true && (
+          <Snackbar severity="success" message="Registered, welcome!" />
+        )}
+      </div>
+    </ThemeProvider>
+  );
+}

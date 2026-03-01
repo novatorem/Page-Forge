@@ -25,7 +25,7 @@ Paragraph Field|{*}|☰|Creates a paragraph selector to choose a set of data
   <tr>
     <td>Encrypted Login</td>
     <td>Session Handling</td>
-    <td>State Zero</td>
+    <td>Zustand</td>
   </tr>
   <tr>
     <td>Adaptive UI</td>
@@ -46,46 +46,45 @@ Paragraph Field|{*}|☰|Creates a paragraph selector to choose a set of data
 ### Setup
 
 ```
-# install server dependencies in the root directory
-npm install
-
-# install frontend dependencies in the client directory
-cd client
-npm install
+# install all dependencies (server + client)
+npm run setup
 ```
 
-Alternatively, you can run `npm run-script setup` in the root directory which runs a script to execute all the above commands. This is a shortcut command defined in [package.json](package.json).
-
+Or manually:
 ```
-# create a development build of React app
-cd client
-npm run build
+# install server dependencies
+npm install
 
-# create Mongo database and run Express server in the root directory
-mkdir mongo-data
-mongod --dbpath mongo-data
+# install frontend dependencies
+cd client && npm install
+```
 
-# run the server on a separate terminal
-node server.js
+Copy `.env.example` to `.env` and fill in your values:
+```
+cp .env.example .env
 ```
 
 ### Development
 
-During development, run the following commands for your app to reflect any changes in the code. Make sure mongo is running on a separate terminal.
+Start both the Express server and the Vite dev server in one command from the root directory:
 
 ```
-# build the React app
-cd client
-npm run build
+npm run dev
+```
 
-# go back to the root directory
-cd ..
+This runs the backend on port 3001 and the Vite frontend with HMR on port 5173. Make sure MongoDB is running beforehand.
 
-# run the server
+### Production Build
+
+```
+# build the frontend
+cd client && npm run build
+
+# serve via Express from the root directory
 node server.js
 ```
 
-Alternatively, you can run `npm run-script build-run` in the root directory which runs a script to execute all the above commands. This is a shortcut command defined in [package.json](package.json).
+Alternatively, `npm run build-run` in the root directory runs both steps.
 
 ### Directory Structure
 
@@ -95,26 +94,25 @@ Page Forge
 │   └── mongoose.js
 ├── models
 │   └── ...
+├── .env.example
 ├── package.json
 ├── server.js
 └── client
+    ├── index.html
+    ├── vite.config.js
     ├── public
-    │   ├── index.html
-    │   └── ...
-    ├── tests
     │   └── ...
     └── src
         ├── actions
-        │   ├── ...
+        │   └── ...
         ├── react-components
         │   └── ...
+        ├── store.js
         ├── index.js
         ├── index.css
         ├── App.js
         ├── App.css
-        ├── MainView.js
-        ├── package.json
-        └── serviceWorker.js
+        └── MainView.js
 ```
 
 ### React Components
@@ -127,23 +125,17 @@ Unique styles associated with each React component are kept separate. If the sam
 
 #### Material UI
 
-You can find more components [here](https://material-ui.com/).
+You can find more components [here](https://mui.com/).
 
-Note that you can override the default styles of these components by increasing CSS selector specificity.
+Note that you can override the default styles of these components using the `sx` prop or the `styled` API.
 
 #### Actions
 
 To keep your `index.js` files clean and simple, import required methods from an associated action file. Following this structure can help organize your code and keep it manageable.
 
-#### Statezero
+#### Zustand
 
-Application state is maintained as a single, immutable, global state graph. See
-[statezero documentation](https://github.com/andornaut/statezero/blob/master/README.md) for more information.
-
-Whenever the global state changes via [actions](client/src/actions), each component's `filterState()` method is invoked with a
-frozen copy of the new state and then its `render()` method is invoked.
-
-Statezero makes it simple to read and update the global state in your app without having to pass around component states.
+Application state is managed with [Zustand](https://zustand.docs.pmnd.rs/). The store is defined in `client/src/store.js` and exposed via the `useAppStore` hook. State mutations go through [actions](client/src/actions), keeping components clean and focused on rendering.
 
 ### Deployment
 
@@ -153,17 +145,19 @@ Statezero makes it simple to read and update the global state in your app withou
 3. Under the database access tab, add a user that has read/write access
 4. Grab the connection string for your database and plug in your password
 
-#### Glitch
-In ⚩.env, set up the two variables below:
+#### Render
+1. Create a new **Web Service** on [Render](https://render.com/) and connect your repository
+2. Set the **Build Command** to:
 ```
-MONGODB_URI='<connection-string>'
-PORT='3000'
+npm install && cd client && npm install && npm run build
 ```
-
-When installing modules in glitch, use `pnpm install` instead of `npm`, as it would avoid using up the set amount of disk space.  
-To use, begin by enabling pnpm through: `enable-pnpm`.
-
-Then, the full command to execute is:
+3. Set the **Start Command** to:
 ```
-pnpm install && cd client && pnpm install && pnpm run build
+node server.js
+```
+4. Under **Environment**, add the following variables:
+```
+MONGODB_URI=<connection-string>
+PORT=3000
+SESSION_SECRET=<long-random-string>
 ```
