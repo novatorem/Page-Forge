@@ -15,10 +15,8 @@
 }
 
 .App {
-  background-repeat: no-repeat;
-  background-size: cover;
   overflow: hidden;
   width: 100%;
   height: 100%;
-  background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url("https://cdn.glitch.com/09b5e92c-68d7-41d4-8cee-049726eaea73%2Fback.jpg?v=1586886081806");
+  background: var(--bg-base);
 }

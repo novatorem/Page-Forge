@@ -1,70 +1,49 @@
-import React from "react";
-import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import Divider from "@material-ui/core/Divider";
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
-import VisibilityIcon from "@material-ui/icons/Visibility";
-import VisibilityOffIcon from "@material-ui/icons/VisibilityOff";
-import { makeStyles, withStyles } from "@material-ui/core/styles";
+import { useState, useEffect } from "react";
+import { styled } from "@mui/material/styles";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 import Parse from "../Parse";
 import dimensions from "../Shared/dimensions";
-import { setState } from "statezero";
+import { setState } from "../../store";
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    flexGrow: 1,
-    height: "100%"
-  },
-  paper: {
-    padding: theme.spacing(3),
-    color: theme.palette.text.secondary,
-    height: "100%"
-  }
-}));
+const MUIGrid = styled(Grid)({
+  height: "100%",
+  position: "relative"
+});
 
-const MUIGrid = withStyles({
-  root: {
-    height: "100%",
-    paddingLeft: "12px",
-    paddingRight: "12px",
-    position: "relative"
-  }
-})(Grid);
+const MUITextField = styled(TextField)({
+  marginTop: "15px",
+  height: "calc(100% - 18px)",
+  overflow: "scroll",
+  scrollbarWidth: "none",
+  // Remove the browser's default bright focus ring on the underlying <textarea>
+  "& textarea": { outline: "none" }
+});
 
-const MUITextField = withStyles({
-  root: {
-    marginTop: "15px",
-    height: "calc(100% - 18px)",
-    overflow: "scroll",
-    scrollbarWidth: "none"
-  }
-})(TextField);
+const MUIHeader = styled(Typography)({
+  marginBottom: "4px"
+});
 
-const MUIHeader = withStyles({
-  root: {
-    marginTop: "-15px",
-    marginBottom: "2px"
-  }
-})(Typography);
-
-const VisButton = withStyles({
-  root: {
-    position: "absolute",
-    bottom: "11px",
-    left: "23px",
-    zIndex: "1"
-  }
-})(Button);
+// Positioned relative to whichever Paper it lives inside
+const VisButton = styled(Button)({
+  position: "absolute",
+  bottom: "var(--spacing-edge)",
+  left: "var(--spacing-edge)",
+  zIndex: 1
+});
 
 export default function Page(props) {
   const cover = props.cover;
-  const classes = useStyles();
-  const [data, setData] = React.useState(cover.data);
-  const [visibility, setVisibility] = React.useState(true);
-  const [visibilityIcon, setvisibilityIcon] = React.useState(
+  const [data, setData] = useState(cover.data);
+  const [visibility, setVisibility] = useState(true);
+  const [visibilityIcon, setvisibilityIcon] = useState(
     <VisibilityIcon />
   );
 
@@ -75,13 +54,13 @@ export default function Page(props) {
     direction = "row";
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     setData(cover.data);
   }, [cover.data]);
 
   const handleChange = event => {
     setData(event.target.value);
-    setState("cover", { id: cover._id, data: event.target.value });
+    setState("cover", { _id: cover._id, data: event.target.value });
   };
 
   const handleVisibility = () => {
@@ -95,31 +74,36 @@ export default function Page(props) {
   };
 
   return (
-    <div className={classes.root}>
+    <div style={{ height: "100%" }}>
       <MUIGrid container alignItems="stretch" spacing={2} direction={direction}>
         {visibility ? (
-          <MUIGrid item xs>
-            <Paper className={classes.paper} elevation={0}>
+          <MUIGrid size="grow">
+            <Paper sx={{ padding: "12px 20px", height: "100%", position: "relative" }} elevation={0}>
               <MUIHeader variant="h6" noWrap>
-                Hack
+                Forge
               </MUIHeader>
               <Divider />
               <MUITextField
                 id="standard-multiline-flexible"
-                multiline="true"
-                fullWidth="true"
+                multiline={true}
+                fullWidth={true}
                 InputProps={{ disableUnderline: true }}
                 value={data}
                 onChange={handleChange}
-                autoFocus="true"
+                autoFocus={true}
               />
+              <VisButton
+                variant="contained"
+                color="primary"
+                onClick={handleVisibility}
+              >
+                {visibilityIcon}
+              </VisButton>
             </Paper>
           </MUIGrid>
-        ) : (
-          true
-        )}
-        <MUIGrid item xs>
-          <Paper className={classes.paper} elevation={0}>
+        ) : null}
+        <MUIGrid size="grow">
+          <Paper sx={{ padding: "12px 20px", height: "100%", position: "relative" }} elevation={0}>
             <MUIHeader variant="h6" noWrap>
               True
             </MUIHeader>
@@ -127,14 +111,6 @@ export default function Page(props) {
             <Parse data={data} />
           </Paper>
         </MUIGrid>
-
-        <VisButton
-          variant="contained"
-          color="primary"
-          onClick={handleVisibility}
-        >
-          {visibilityIcon}
-        </VisButton>
       </MUIGrid>
     </div>
   );

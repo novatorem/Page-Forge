@@ -1,29 +1,21 @@
-import React from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
-import List from "@material-ui/core/List";
-import Grid from "@material-ui/core/Grid";
-import Avatar from "@material-ui/core/Avatar";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import { blue } from "@material-ui/core/colors";
-import ListItem from "@material-ui/core/ListItem";
-import SubjectIcon from "@material-ui/icons/Subject";
-import { makeStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import ClearAllIcon from "@material-ui/icons/ClearAll";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import List from "@mui/material/List";
+import Grid from "@mui/material/Grid";
+import Avatar from "@mui/material/Avatar";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import { blue } from "@mui/material/colors";
+import ListItemButton from "@mui/material/ListItemButton";
+import SubjectIcon from "@mui/icons-material/Subject";
+import Typography from "@mui/material/Typography";
+import ClearAllIcon from "@mui/icons-material/ClearAll";
+import DialogTitle from "@mui/material/DialogTitle";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
 import "./styles.css";
-const useStyles = makeStyles({
-  avatar: {
-    backgroundColor: blue[100],
-    color: blue[600]
-  }
-});
 
 function SimpleDialog(props) {
-  const classes = useStyles();
   const { onClose, selectedValue, open } = props;
 
   const handleClose = () => {
@@ -43,33 +35,32 @@ function SimpleDialog(props) {
       <DialogTitle id="simple-dialog-title">Add a Paragraph</DialogTitle>
       <List>
         {props.paragraphs.map(
-          paragraph => (
-            (paragraph = paragraph[0].substring(1, paragraph[0].length - 1)),
-            (
-              <ListItem
-                button
+          paragraph => {
+            paragraph = paragraph[0].substring(1, paragraph[0].length - 1);
+            return (
+              <ListItemButton
                 onClick={() => handleListItemClick(paragraph.split("|")[1])}
                 key={paragraph.split("|")[1]}
               >
                 <ListItemAvatar>
-                  <Avatar className={classes.avatar}>
+                  <Avatar sx={{ bgcolor: blue[100], color: blue[600] }}>
                     <SubjectIcon />
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText primary={paragraph.split("|")[0]} />
-              </ListItem>
-            )
-          )
+              </ListItemButton>
+            );
+          }
         )}
 
-        <ListItem autoFocus button onClick={() => handleListItemClick("")}>
+        <ListItemButton autoFocus onClick={() => handleListItemClick("")}>
           <ListItemAvatar>
             <Avatar>
               <ClearAllIcon />
             </Avatar>
           </ListItemAvatar>
           <ListItemText primary="Clear" />
-        </ListItem>
+        </ListItemButton>
       </List>
     </Dialog>
   );
@@ -82,8 +73,8 @@ SimpleDialog.propTypes = {
 };
 
 export default function Para(props) {
-  const [open, setOpen] = React.useState(false);
-  const [selectedValue, setSelectedValue] = React.useState("");
+  const [open, setOpen] = useState(false);
+  const [selectedValue, setSelectedValue] = useState("");
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -93,16 +84,14 @@ export default function Para(props) {
     props.paraArr[props.closureCount] = value;
     setOpen(false);
     setSelectedValue(value);
-    props.store = value;
   };
 
   return (
     <div>
       <Typography align="left">{selectedValue}</Typography>
       <br />
-      <Grid container justify="center">
+      <Grid container justifyContent="center">
         <Button
-          color="default"
           variant="outlined"
           aria-label="paragraph"
           onClick={handleClickOpen}

@@ -1,28 +1,18 @@
 /* The Authenticated View (after logging in) */
 
 import React from "react";
-// Importing react-router-dom to use the React Router
-import { Route, Switch, BrowserRouter } from "react-router-dom";
+import { Route, Routes, BrowserRouter, Navigate } from "react-router-dom";
 
 import Dashboard from "./react-components/Dashboard";
 
-class MainView extends React.Component {
-    render() {
-        return (
-            <BrowserRouter>
-                <Switch>
-                    <Route
-                        exact
-                        path={["/", "/dashboard"]}
-                        render={({ history }) => (
-                            <Dashboard history={history} />
-                        )}
-                    />
-                    <Route render={() => <div>404 Not found</div>} />
-                </Switch>
-            </BrowserRouter>
-        );
-    }
+export default function MainView() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="*" element={<div>404 Not found</div>} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
-
-export default MainView;

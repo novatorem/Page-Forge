@@ -1,16 +1,28 @@
 /* Top-level shared styles */
 /* You can keep styles that are shared by different components here */
 
+:root {
+  --bg-base:        #191919;
+  --bg-surface:     #262626;
+  --text-primary:   #e7e8eb;
+  --text-secondary: #9a9ca1;
+  --spacing-edge:   11px;
+}
+
 html {
   height: 100%;
 }
 
 body {
-  color: #e7e8eb;
-  text-align: center;
-  background-color: #030d24;
-  margin: 40px;
+  margin: 0;
+  color: var(--text-primary);
+  background-color: var(--bg-base);
   font-family: "Helvetica Neue", Helvetica, sans-serif;
+  scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
 }
 
 h1,
@@ -21,29 +33,17 @@ p {
 }
 
 #root {
-  background-color: #030d24;
+  background-color: var(--bg-base);
 }
 
 .app {
-  padding: 20px 0 40px 0;
-  background-color: #030d24;
+  background-color: var(--bg-base);
 }
 
-.app__input .MuiInput-underline:after {
-  border-color: #e7e8eb;
-}
-
-.MuiInputBase-input {
-  color: #e7e8eb;
-}
-
-.MuiInput-input {
-  color: #e7e8eb;
-}
-
-.app__input .MuiFormLabel-root,
-.app__input .MuiFormLabel-root.Mui-focused {
-  color: #e7e8eb;
+/* Soften the browser-default bright-blue text selection */
+::selection {
+  background: rgba(99, 163, 255, 0.25);
+  color: var(--text-primary);
 }
 
 .MuiTextField-root.app__horizontal-center,
@@ -53,6 +53,3 @@ p {
   margin-right: auto;
 }
 
-::-webkit-scrollbar {
-    display: none;
-}

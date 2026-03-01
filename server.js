@@ -1,4 +1,5 @@
 "use strict";
+require("dotenv").config();
 const log = console.log;
 
 const express = require("express");
@@ -12,30 +13,37 @@ const { mongoose } = require("./db/mongoose");
 const { User } = require("./models/user");
 const { Cover } = require("./models/cover");
 
-// to validate object IDs
-const { ObjectID } = require("mongodb");
-
-// body-parser: middleware for parsing HTTP JSON body into a usable object
-const bodyParser = require("body-parser");
-app.use(bodyParser.json());
+// body-parser is built into Express since 4.16 - no separate package needed
+app.use(express.json());
 
 // express-session for managing user sessions
 const session = require("express-session");
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 
 /*** User handling **************************************/
 // Create a session cookie
 app.use(
   session({
-    secret: "oursecret",
+    secret: process.env.SESSION_SECRET || "change-this-in-production",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      expires: new Date(253402300000000),
-      httpOnly: true
+      maxAge: 90 * 24 * 60 * 60 * 1000, // 90 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict"
     }
   })
 );
+
+// Middleware to require an authenticated session
+const requireAuth = (req, res, next) => {
+  if (req.session.user) {
+    next();
+  } else {
+    res.status(401).send("Unauthorized");
+  }
+};
 
 // A route to login and create a session
 app.post("/users/login", (req, res) => {
@@ -109,8 +117,7 @@ app.post("/users/register", (req, res) => {
 
 /** Page resource routes **/
 // a POST request to create a user's page
-app.post("/covers/new", (req, res) => {
-  log(req.body);
+app.post("/covers/new", requireAuth, (req, res) => {
   const coverID = new mongoose.Types.ObjectId().toHexString();
 
   const cover = new Cover({
@@ -145,7 +152,7 @@ app.post("/covers/new", (req, res) => {
 });
 
 // a GET route to get covers based on user
-app.get("/covers/:id", (req, res) => {
+app.get("/covers/:id", requireAuth, (req, res) => {
   const id = req.params.id;
 
   Cover.find({ owner: id })
@@ -163,14 +170,14 @@ app.get("/covers/:id", (req, res) => {
 });
 
 // a PATCH route to save cover to a user
-app.patch("/covers/:cid", (req, res) => {
+app.patch("/covers/:cid", requireAuth, (req, res) => {
   const cid = req.params.cid;
 
   // get the updated name and year only from the request body.
   const { data } = req.body;
   const body = { data };
 
-  if (!ObjectID.isValid(cid)) {
+  if (!mongoose.Types.ObjectId.isValid(cid)) {
     res.status(404).send();
   }
 
@@ -190,18 +197,18 @@ app.patch("/covers/:cid", (req, res) => {
 
 
 // a DELETE route to delete cover to a user
-app.delete("/covers/:cid", (req, res) => {
+app.delete("/covers/:cid", requireAuth, (req, res) => {
   const cid = req.params.cid;
 
   // get the updated name and year only from the request body.
   const { data } = req.body;
   const body = { data };
 
-  if (!ObjectID.isValid(cid)) {
+  if (!mongoose.Types.ObjectId.isValid(cid)) {
     res.status(404).send();
   }
-  
-  Cover.findByIdAndRemove(cid)
+
+  Cover.findByIdAndDelete(cid)
     .then(cover => {
       if (!cover) {
         res.status(404).send();
@@ -220,7 +227,7 @@ app.delete("/covers/:cid", (req, res) => {
 app.use(express.static(__dirname + "/client/build"));
 
 // All routes other than above will go to index.html
-app.get("*", (req, res) => {
+app.get("/*splat", (req, res) => {
   res.sendFile(__dirname + "/client/build/index.html");
 });
 

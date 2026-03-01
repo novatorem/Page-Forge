@@ -1,122 +1,87 @@
-import clsx from "clsx";
-import React, { useState } from "react";
+import { useState } from "react";
+import { styled } from "@mui/material/styles";
 
-import List from "@material-ui/core/List";
-import Menu from "@material-ui/core/Menu";
-import Drawer from "@material-ui/core/Drawer";
-import AppBar from "@material-ui/core/AppBar";
-import Button from "@material-ui/core/Button";
-import SaveIcon from "@material-ui/icons/Save";
-import MenuIcon from "@material-ui/icons/Menu";
-import InfoIcon from "@material-ui/icons/Info";
-import Toolbar from "@material-ui/core/Toolbar";
-import Divider from "@material-ui/core/Divider";
-import ListItem from "@material-ui/core/ListItem";
-import MenuItem from "@material-ui/core/MenuItem";
-import DeleteIcon from "@material-ui/icons/Delete";
-import Typography from "@material-ui/core/Typography";
-import IconButton from "@material-ui/core/IconButton";
-import { makeStyles } from "@material-ui/core/styles";
-import MoreVertIcon from "@material-ui/icons/MoreVert";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
-import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import ExitToAppRoundedIcon from "@material-ui/icons/ExitToAppRounded";
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
+import List from "@mui/material/List";
+import Menu from "@mui/material/Menu";
+import Drawer from "@mui/material/Drawer";
+import AppBar from "@mui/material/AppBar";
+import Button from "@mui/material/Button";
+import SaveIcon from "@mui/icons-material/Save";
+import MenuIcon from "@mui/icons-material/Menu";
+import InfoIcon from "@mui/icons-material/Info";
+import Toolbar from "@mui/material/Toolbar";
+import Divider from "@mui/material/Divider";
+import MenuItem from "@mui/material/MenuItem";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import CssBaseline from "@mui/material/CssBaseline";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemButton from "@mui/material/ListItemButton";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ExitToAppRoundedIcon from "@mui/icons-material/ExitToAppRounded";
+import { ThemeProvider } from "@mui/material/styles";
 
 import Page from "./page";
 import NewCover from "./new";
-import { setState, getState } from "statezero";
+import { setState, getState } from "../../store";
 import { logout } from "../../actions/user";
 import { saveUserCover } from "../../actions/cover";
+import theme from "../../theme";
 
 const drawerWidth = 175;
-const darkTheme = createMuiTheme({
-  palette: {
-    type: "dark"
-  }
-});
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    display: "flex",
-    height: "100%"
-  },
-  appBar: {
-    transition: theme.transitions.create(["margin", "width"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    })
-  },
-  appBarShift: {
+const StyledAppBar = styled(AppBar, {
+  shouldForwardProp: prop => prop !== "open"
+})(({ theme, open }) => ({
+  transition: theme.transitions.create(["margin", "width"], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen
+  }),
+  ...(open && {
     width: `calc(100% - ${drawerWidth}px)`,
-    marginLeft: drawerWidth,
+    marginLeft: `${drawerWidth}px`,
     transition: theme.transitions.create(["margin", "width"], {
       easing: theme.transitions.easing.easeOut,
       duration: theme.transitions.duration.enteringScreen
     })
-  },
-  menuButton: {
-    marginRight: theme.spacing(2)
-  },
-  titleTypo: {
-    flex: 1
-  },
-  hide: {
-    display: "none"
-  },
-  drawer: {
-    position: "relative",
-    width: drawerWidth,
-    flexShrink: 0
-  },
-  drawerPaper: {
-    width: drawerWidth
-  },
-  drawerHeader: {
-    display: "flex",
-    alignItems: "center",
-    padding: theme.spacing(0, 1),
-    // necessary for content to be below app bar
-    ...theme.mixins.toolbar,
-    justifyContent: "flex-end"
-  },
-  content: {
-    flexGrow: 1,
-    paddingTop: theme.spacing(8),
-    transition: theme.transitions.create("margin", {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    }),
-    marginLeft: -drawerWidth,
-    height: "100%",
-    backgroundImage:
-      'url("https://cdn.glitch.com/0ae08cca-f72e-4675-be70-b794f4bd0b72%2Fbg.jpg?v=1588962305935")',
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "cover"
-  },
-  contentShift: {
+  })
+}));
+
+const DrawerHeader = styled("div")(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  padding: theme.spacing(0, 1),
+  ...theme.mixins.toolbar,
+  justifyContent: "flex-end"
+}));
+
+const Main = styled("main", {
+  shouldForwardProp: prop => prop !== "open"
+})(({ theme, open }) => ({
+  flexGrow: 1,
+  // Top: clear the fixed AppBar + 16px breathing room. Sides/bottom: 16px uniform gap.
+  padding: `calc(${theme.spacing(8)} + 16px) ${theme.spacing(2)} ${theme.spacing(2)}`,
+  boxSizing: "border-box",
+  transition: theme.transitions.create("margin", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen
+  }),
+  marginLeft: `-${drawerWidth}px`,
+  height: "100%",
+  background: "var(--bg-base)",
+  ...(open && {
     transition: theme.transitions.create("margin", {
       easing: theme.transitions.easing.easeOut,
       duration: theme.transitions.duration.enteringScreen
     }),
     marginLeft: 0
-  },
-  button: {
-    textTransform: "none"
-  },
-  paper: {
-    height: "100%",
-    marginLeft: "12px",
-    marginRight: "12px"
-  }
+  })
 }));
 
 export default function VerticalDrawer(props) {
-  let selectCount = -1;
-  const classes = useStyles();
-  
   const introCover = {
     data: "Hello, " + getState("currentUser") + "! " + props.introCover
   };
@@ -127,7 +92,7 @@ export default function VerticalDrawer(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [content, setContent] = useState(defaultContent);
   const [title, setTitle] = useState("Welcome to Page Forge!");
-  const [selectedIndex, setSelectedIndex] = React.useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
 
   const handleListItemClick = (event, index) => {
     setSelectedIndex(index);
@@ -171,22 +136,17 @@ export default function VerticalDrawer(props) {
   };
 
   return (
-    <div className={classes.root}>
-      <ThemeProvider theme={darkTheme}>
+    <div style={{ display: "flex", height: "100%" }}>
+      <ThemeProvider theme={theme}>
         <CssBaseline />
-        <AppBar
-          position="fixed"
-          className={clsx(classes.appBar, {
-            [classes.appBarShift]: open
-          })}
-        >
+        <StyledAppBar position="fixed" open={open}>
           <Toolbar>
             <IconButton
               color="inherit"
               aria-label="open drawer"
               onClick={handleDrawerOpen}
               edge="start"
-              className={clsx(classes.menuButton, open && classes.hide)}
+              sx={{ mr: 2, ...(open && { display: "none" }) }}
             >
               <MenuIcon />
             </IconButton>
@@ -194,7 +154,7 @@ export default function VerticalDrawer(props) {
               variant="h6"
               noWrap
               align="left"
-              className={clsx(classes.titleTypo)}
+              sx={{ flex: 1 }}
             >
               {title}
             </Typography>
@@ -202,9 +162,7 @@ export default function VerticalDrawer(props) {
             {/* SAVE - if in a cover, show the save button */}
             {cover ? (
               <IconButton
-                aria-label="more"
-                aria-controls="long-menu"
-                aria-haspopup="true"
+                aria-label="save"
                 onClick={saveCover}
               >
                 <SaveIcon />
@@ -254,65 +212,53 @@ export default function VerticalDrawer(props) {
               </MenuItem>
             </Menu>
           </Toolbar>
-        </AppBar>
+        </StyledAppBar>
         <Drawer
-          className={classes.drawer}
+          sx={{
+            position: "relative",
+            width: drawerWidth,
+            flexShrink: 0,
+            "& .MuiDrawer-paper": { width: drawerWidth }
+          }}
           variant="persistent"
           anchor="left"
           open={open}
-          classes={{
-            paper: classes.drawerPaper
-          }}
         >
-          <div className={classes.drawerHeader}>
-            <Button onClick={resetContent} className={classes.button}>
+          <DrawerHeader>
+            <Button onClick={resetContent} sx={{ textTransform: "none" }}>
               Page Forge
             </Button>
-            {/*<Typography align="left" variant="subtitle1">
-              Pages
-            </Typography>*/}
             <IconButton onClick={handleDrawerClose}>
               <ChevronLeftIcon />
             </IconButton>
-          </div>
+          </DrawerHeader>
           <Divider />
           <List>
             {/* Drawer List - Populates all the pages on the drawer */}
             {props.userCovers
-              ? props.userCovers.map(userCover => {
-                  return (function() {
-                    selectCount++;
-                    let currentDraw = selectCount;
-                    return (
-                      <ListItem
-                        button
-                        selected={selectedIndex === currentDraw}
-                        key={userCover.title}
-                        onClick={event => (
-                          setCover(userCover),
-                          setTitle(userCover.title),
-                          setState("cover", userCover),
-                          setContent(<Page cover={userCover} />),
-                          handleListItemClick(event, currentDraw)
-                        )}
-                      >
-                        <ListItemText primary={userCover.title} />
-                      </ListItem>
-                    );
-                  })();
-                })
+              ? props.userCovers.map((userCover, index) => (
+                  <ListItemButton
+                    selected={selectedIndex === index}
+                    key={userCover.title}
+                    onClick={event => {
+                      setCover(userCover);
+                      setTitle(userCover.title);
+                      setState("cover", userCover);
+                      setContent(<Page cover={userCover} />);
+                      handleListItemClick(event, index);
+                    }}
+                  >
+                    <ListItemText primary={userCover.title} />
+                  </ListItemButton>
+                ))
               : null}
           </List>
 
           <NewCover />
         </Drawer>
-        <main
-          className={clsx(classes.content, {
-            [classes.contentShift]: open
-          })}
-        >
+        <Main open={open}>
           {content}
-        </main>
+        </Main>
       </ThemeProvider>
     </div>
   );

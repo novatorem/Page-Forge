@@ -1,83 +1,14 @@
-import clsx from "clsx";
-import React from "react";
-import Input from "@material-ui/core/Input";
-import { makeStyles } from "@material-ui/core/styles";
-import IconButton from "@material-ui/core/IconButton";
-import InputLabel from "@material-ui/core/InputLabel";
-import Visibility from "@material-ui/icons/Visibility";
-import FormControl from "@material-ui/core/FormControl";
-import VisibilityOff from "@material-ui/icons/VisibilityOff";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
+import { useState } from "react";
+import TextField from "@mui/material/TextField";
+import IconButton from "@mui/material/IconButton";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import InputAdornment from "@mui/material/InputAdornment";
 
 import { updateLoginForm, login, register } from "../../actions/user";
 
-import "./styles.css";
-import "./../../App.css";
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    alignItems: "center"
-  },
-  margin: {
-    margin: theme.spacing(1)
-  },
-  withoutLabel: {
-    marginTop: theme.spacing(3)
-  },
-  textField: {
-    width: "250px"
-  }
-}));
-
-const theme = createMuiTheme({
-  overrides: {
-    MuiInput: {
-      underline: {
-        "&:before": {
-          borderBottom: "1px solid #FFFFFF44"
-        },
-        "&:hover": {
-          borderBottom: "1px solid #FFFFFF88"
-        },
-        "&:hover:not($disabled):after": {
-          borderBottom: "1px solid #FFFFFF"
-        },
-        "&:hover:not($disabled):before": {
-          borderBottom: "1px solid #FFFFFFAA"
-        },
-        "&:after": {
-          borderBottom: "1px solid #FFFFFF44"
-        }
-      }
-    },
-    MuiInputLabel: {
-      root: {
-        color: "#FFFFFFDC",
-        "&$focused": {
-          color: "#FFFFFF"
-        }
-      }
-    },
-    MuiIconButton: {
-      root: {
-        color: "#FFFFFFDC"
-      }
-    },
-    MuiInputBase: {
-      root: {
-        color: "#FFFFFFDC"
-      }
-    }
-  }
-});
-
 export default function InputAdornments(props) {
-  const classes = useStyles();
-  const [values, setValues] = React.useState({
+  const [values, setValues] = useState({
     password: "",
     showPassword: false
   });
@@ -96,48 +27,37 @@ export default function InputAdornments(props) {
   };
 
   return (
-    <MuiThemeProvider theme={theme}>
-      <div className={classes.root}>
-        <FormControl
-          fullWidth
-          className={clsx(classes.margin, classes.textField)}
-        >
-          <InputLabel htmlFor="standard-adornment-password">
-            Password
-          </InputLabel>
-          <Input
-            id="standard-adornment-password"
-            type={values.showPassword ? "text" : "password"}
-            value={values.password}
-            name="password"
-            className="password"
-            margin="normal"
-            fullWidth="true"
-            required="true"
-            onChange={handleChange("password")}
-            onKeyDown={e => {
-              if (e.keyCode === 13) {
-                if (props.login) {
-                  login();
-                } else {
-                  register();
-                }
-              }
-            }}
-            endAdornment={
-              <InputAdornment position="end">
-                <IconButton
-                  aria-label="toggle password visibility"
-                  onClick={handleClickShowPassword}
-                  onMouseDown={handleMouseDownPassword}
-                >
-                  {values.showPassword ? <Visibility /> : <VisibilityOff />}
-                </IconButton>
-              </InputAdornment>
-            }
-          />
-        </FormControl>
-      </div>
-    </MuiThemeProvider>
+    <TextField
+      variant="standard"
+      label="Password"
+      type={values.showPassword ? "text" : "password"}
+      value={values.password}
+      name="password"
+      margin="none"
+      className="login__input app__input app__horizontal-center"
+      onChange={handleChange("password")}
+      onKeyDown={e => {
+        if (e.key === 'Enter') {
+          if (props.login) {
+            login();
+          } else {
+            register();
+          }
+        }
+      }}
+      InputProps={{
+        endAdornment: (
+          <InputAdornment position="end">
+            <IconButton
+              aria-label="toggle password visibility"
+              onClick={handleClickShowPassword}
+              onMouseDown={handleMouseDownPassword}
+            >
+              {values.showPassword ? <Visibility /> : <VisibilityOff />}
+            </IconButton>
+          </InputAdornment>
+        )
+      }}
+    />
   );
 }

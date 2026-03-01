@@ -1,4 +1,8 @@
-import { setState } from "statezero";
+import { setState } from "../store";
+
+export const autoHide = (key, ms = 3250) => {
+  setTimeout(() => setState(key, false), ms);
+};
 
 // Initialize all state paths used by your app as empty.
 // These are the states that you can filter using filterState()
@@ -16,7 +20,7 @@ export const setEmptyState = () => {
   // Snackbar login resources
   setState("loginClick", false);
   setState("loginError", false);
-  setState("loginFailed", false);
+  setState("failedLogin", false);
   setState("registered", false);
   setState("passwordShort", false);
   setState("invalidUsername", false);

@@ -3,7 +3,11 @@
     "version": "1.0.1",
     "description": "",
     "main": "server.js",
+    "engines": {
+        "node": ">=18"
+    },
     "scripts": {
+        "dev": "concurrently -n server,client -c cyan,magenta \"node server.js\" \"cd client && npm run dev\"",
         "setup": "npm install && cd client && npm install && cd ..",
         "build-run": "cd client && npm run build && cd .. && node server.js",
         "start": "node server.js",
@@ -13,13 +17,13 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "axios": "^1.11.0",
-        "bcryptjs": "^2.4.3",
-        "body-parser": "^1.18.3",
-        "express": "^4.16.4",
-        "express-session": "^1.15.6",
-        "mongodb": "^3.1.13",
-        "mongoose": "^8.18.1",
-        "react-https-redirect": "^1.1.0"
+        "bcryptjs": "^3.0.0",
+        "dotenv": "^17.3.1",
+        "express": "^5.0.0",
+        "express-session": "^1.18.0",
+        "mongoose": "^9.0.0"
+    },
+    "devDependencies": {
+        "concurrently": "^9.2.1"
     }
 }
