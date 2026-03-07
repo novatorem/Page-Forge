@@ -1,0 +1,30 @@
+{
+    "name": "PageForgeServer",
+    "version": "1.0.1",
+    "description": "",
+    "main": "server.js",
+    "engines": {
+        "node": ">=18"
+    },
+    "scripts": {
+        "dev": "concurrently -n server,client -c cyan,magenta \"node server.js\" \"cd client && npm run dev\"",
+        "setup": "npm install && cd client && npm install && cd ..",
+        "build-run": "cd client && npm run build && cd .. && node server.js",
+        "start": "node server.js",
+        "heroku-postbuild": "cd client && npm install && npm run build",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "bcryptjs": "^3.0.0",
+        "dotenv": "^17.3.1",
+        "express": "^5.0.0",
+        "express-rate-limit": "^7.0.0",
+        "express-session": "^1.18.0",
+        "mongoose": "^9.0.0"
+    },
+    "devDependencies": {
+        "concurrently": "^9.2.1"
+    }
+}

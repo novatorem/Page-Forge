@@ -1,0 +1,13 @@
+.cover {
+  height: inherit;
+  width: inherit;
+  margin: 0;
+  border-radius: 3px;
+  background-color: var(--bg-surface);
+}
+
+.newCover {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+}

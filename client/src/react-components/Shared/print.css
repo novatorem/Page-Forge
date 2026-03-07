@@ -1,0 +1,20 @@
+@media print {
+  body > * {
+    display: none !important;
+  }
+
+  body > #print-root {
+    display: block !important;
+  }
+
+  #print-root {
+    position: fixed;
+    inset: 0;
+    padding: 2cm;
+    background: white;
+    color: black;
+    font-family: serif;
+    font-size: 12pt;
+    line-height: 1.6;
+  }
+}

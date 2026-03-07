@@ -1,0 +1,22 @@
+/* Styles for the Dashboard component */
+
+.center {
+  /* center horizontally and vertically */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.center__parent {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.App {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-base);
+}
