@@ -8,9 +8,6 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 
-import { ThemeProvider } from "@mui/material/styles";
-import theme from "../../theme";
-
 import { setState } from "../../store";
 import { deleteUserCover } from "../../actions/cover";
 
@@ -68,7 +65,6 @@ export default function Delete(props) {
   };
 
   return (
-    <ThemeProvider theme={theme}>
       <Dialog
         open={true}
         onClose={handleClose}
@@ -110,6 +106,5 @@ export default function Delete(props) {
           </Button>
         </DialogActions>
       </Dialog>
-    </ThemeProvider>
   );
 }

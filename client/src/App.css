@@ -1,12 +1,5 @@
-/* Top-level shared styles */
-/* You can keep styles that are shared by different components here */
-
 :root {
-  --bg-base:        #191919;
-  --bg-surface:     #262626;
-  --text-primary:   #e7e8eb;
-  --text-secondary: #9a9ca1;
-  --spacing-edge:   11px;
+  --spacing-edge: 11px;
 }
 
 html {
@@ -40,11 +33,6 @@ p {
   background-color: var(--bg-base);
 }
 
-/* Soften the browser-default bright-blue text selection */
-::selection {
-  background: rgba(99, 163, 255, 0.25);
-  color: var(--text-primary);
-}
 
 .MuiTextField-root.app__horizontal-center,
 .MuiButton-root.app__horizontal-center {

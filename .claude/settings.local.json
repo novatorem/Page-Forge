@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:/Projects/Page-Forge-master/client\" && npm install 2>&1)",
+      "Bash(cd \"C:/Projects/Page-Forge-master/client\" && npm run build 2>&1)",
+      "Bash(tail:*)",
+      "Bash(true:*)",
+      "Bash(curl:*)",
+      "WebSearch",
+      "Bash(cd /c/Projects/Page-Forge-master && npm install 2>&1)",
+      "Bash(echo Cleaned:*)",
+      "Bash(cd /c/Projects/Page-Forge-master/client && npm install 2>&1)",
+      "Bash(cd /c/Projects/Page-Forge-master/client && npm run build 2>&1)",
+      "Bash(npx kill-port:*)",
+      "Bash(find /c/Projects/Page-Forge-master/client/src -name \"*.css\" -exec wc -l {} ;)",
+      "Bash(echo EXIT:$?:*)",
+      "Bash(npm outdated:*)",
+      "Bash(cd:*)"
+    ]
+  }
+}

@@ -1,4 +1,4 @@
-import { createTheme } from "@mui/material/styles";
+import { createTheme, alpha } from "@mui/material/styles";
 
 // Single source of truth for the MUI theme.
 // CSS custom properties (--bg-base, --bg-surface, etc.) in App.css
@@ -6,28 +6,67 @@ import { createTheme } from "@mui/material/styles";
 const theme = createTheme({
   palette: {
     mode: "dark",
+    primary: {
+      main: "#00e1ff",
+      light: "#66edff",
+      dark: "#00a1b5",
+      contrastText: "#000000",
+    },
+    secondary: {
+      main: "#808080",
+      light: "#b3b3b3",
+      dark: "#4d4d4d",
+      contrastText: "#ffffff",
+    },
     background: {
-      default: "#191919",
-      paper: "#262626",
+      default: "#10141e",
+      paper: "#1a1f2e",
     },
     text: {
-      primary: "#e7e8eb",
-      secondary: "#9a9ca1",
+      primary: "#ffffff",
+      secondary: "#b3b3b3",
     },
   },
   typography: {
     fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
   },
   components: {
-    // Make the AppBar match the drawer (dark surface) rather than the
-    // default primary-colour blue, unifying the chrome.
     MuiAppBar: {
       styleOverrides: {
-        root: {
-          backgroundColor: "#262626",
+        root: ({ theme }) => ({
+          backgroundColor: theme.palette.background.paper,
+          backgroundImage: "none",
+        })
+      }
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
           backgroundImage: "none",
         },
       },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          backgroundImage: "none",
+        },
+      },
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          backgroundImage: "none",
+        },
+      },
+    },
+    MuiCssBaseline: {
+      styleOverrides: theme => `
+        ::selection {
+          background: ${alpha(theme.palette.primary.main, 0.35)};
+          color: ${theme.palette.text.primary};
+        }
+      `,
     },
   },
 });

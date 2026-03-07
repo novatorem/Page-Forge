@@ -1,69 +1,63 @@
-import { useState, useRef } from "react";
+import { useState, useRef, forwardRef, useImperativeHandle } from "react";
 import { styled } from "@mui/material/styles";
 
 import Select from "@mui/material/Select";
-import Button from "@mui/material/Button";
-import DoneIcon from "@mui/icons-material/Done";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import FileCopyIcon from "@mui/icons-material/FileCopy";
 import FormControl from "@mui/material/FormControl";
 
 import Para from "./para";
 
-import { ThemeProvider } from "@mui/material/styles";
-import theme from "../../theme";
-
 import "./styles.css";
 
 const MUITextField = styled(TextField)({
-  marginTop: "-1px",
-  marginBottom: "1px"
+  display: "inline-flex",
+  verticalAlign: "middle",
+  marginTop: "2px",
+  marginBottom: "2px",
+  "& .MuiInputBase-input": {
+    padding: "2px 8px"
+  }
 });
 
 const MUIFormControl = styled(FormControl)({
-  marginTop: "-3px",
-  marginBottom: "3px"
-});
-
-const MUIButton = styled(Button)({
-  position: "absolute",
-  bottom: "var(--spacing-edge)",
-  right: "var(--spacing-edge)"
+  display: "inline-flex",
+  verticalAlign: "middle",
+  marginTop: "2px",
+  marginBottom: "2px",
+  minWidth: 120,
+  "& .MuiSelect-select": {
+    padding: "2px 32px 2px 8px"
+  }
 });
 
 const MUITypography = styled(Typography)({
   overflow: "auto",
   marginTop: "15px",
-  height: "calc(100% - 18px)",
-  scrollbarWidth: "none"
+  flex: 1,
+  minHeight: 0
 });
 
-export default function Parse(props) {
-  // Per-instance mutable storage for interactive element values.
-  // useRef so values survive re-renders without triggering them.
-  const inputArr = useRef([]);
+const Parse = forwardRef(function Parse(props, ref) {
+  const inputValues = useRef([]);
   const inputCount = useRef(-1);
-  const selectArr = useRef([]);
+  const selectValues = useRef([]);
   const selectCount = useRef(-1);
-  const paraArr = useRef([]);
-  const paraCount = useRef(-1);
+  const paragraphValues = useRef([]);
+  const paragraphCount = useRef(-1);
   const paragraphData = useRef([]);
-
-  // ── Factory functions ────────────────────────────────────────────────────
-  // Defined inside the component so they close over the per-instance refs
-  // instead of shared module-level variables.
 
   const CTextField = function() {
     inputCount.current++;
-    inputArr.current.push("");
+    inputValues.current.push("");
     const closureCount = inputCount.current;
     return (
       <MUITextField
+        key={`input-${closureCount}`}
         size="small"
         onChange={e => {
-          inputArr.current[closureCount] = e.target.value;
+          inputValues.current[closureCount] = e.target.value;
         }}
       />
     );
@@ -71,7 +65,7 @@ export default function Parse(props) {
 
   const CSelect = function(match) {
     selectCount.current++;
-    selectArr.current.push("");
+    selectValues.current.push("");
     const closureCount = selectCount.current;
 
     match = match.substring(1, match.length - 1);
@@ -81,10 +75,12 @@ export default function Parse(props) {
     ));
 
     return (
-      <MUIFormControl>
+      <MUIFormControl key={`select-${closureCount}`}>
         <Select
+          size="small"
+          defaultValue=""
           onChange={e => {
-            selectArr.current[closureCount] = e.target.value;
+            selectValues.current[closureCount] = e.target.value;
           }}
         >
           {menus}
@@ -94,20 +90,19 @@ export default function Parse(props) {
   };
 
   const CParagraph = function() {
-    paraCount.current++;
-    paraArr.current.push("");
-    const closureCount = paraCount.current;
+    paragraphCount.current++;
+    paragraphValues.current.push("");
+    const closureCount = paragraphCount.current;
     return (
       <Para
+        key={`paragraph-${closureCount}`}
         paragraphs={paragraphData.current}
-        store={paraArr.current[closureCount]}
-        paraArr={paraArr.current}
+        store={paragraphValues.current[closureCount]}
+        paragraphValues={paragraphValues.current}
         closureCount={closureCount}
       />
     );
   };
-
-  // ── Parsing pipeline ────────────────────────────────────────────────────
 
   const createSelectors = function(element) {
     if (typeof element === "object") {
@@ -137,15 +132,15 @@ export default function Parse(props) {
     // JS bug with trailing last character caused by regex new line
     ///{.+\|(.|[\r\n])+?}/g;
     const listRegx = /{.+\|.+?}/g;
-    let paraData = element.split(listRegx);
+    let paragraphParts = element.split(listRegx);
     let match;
 
     while ((match = listRegx.exec(element)) !== null) {
       paragraphData.current.push(match);
     }
 
-    paraData = paraData.filter(item => item);
-    return paraData;
+    paragraphParts = paragraphParts.filter(item => item);
+    return paragraphParts;
   };
 
   const createParagraphs = function(element) {
@@ -174,7 +169,7 @@ export default function Parse(props) {
 
     inputCount.current = -1;
     selectCount.current = -1;
-    // paraCount is intentionally NOT reset — the paragraph ordering
+    // paragraphCount is intentionally NOT reset — the paragraph ordering
     // hack in showRaw relies on the array growing across renders.
 
     const input = sourceStr.split("{_}");
@@ -189,23 +184,19 @@ export default function Parse(props) {
     return paraDone;
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────
-
   const data = getAll(props.data);
-  const [cIcon, setCIcon] = useState(<FileCopyIcon />);
 
-  const showRaw = () => {
+  const copy = () => {
     let inRaw = 0;
     let slRaw = 0;
     let paRaw = 0;
     let rawList = [];
 
-    // Logic creates empty values trailing, remove them
-    while (inputArr.current[inputArr.current.length - 1] === "") {
-      inputArr.current.pop();
+    while (inputValues.current[inputValues.current.length - 1] === "") {
+      inputValues.current.pop();
     }
-    while (selectArr.current[selectArr.current.length - 1] === "") {
-      selectArr.current.pop();
+    while (selectValues.current[selectValues.current.length - 1] === "") {
+      selectValues.current.pop();
     }
 
     // --- This fixes a bug in a neat hack ---
@@ -219,19 +210,19 @@ export default function Parse(props) {
       }
     });
 
-    let tParaArr = paraArr.current.slice(
-      paraArr.current.length - rawCount,
-      paraArr.current.length
+    let tParaArr = paragraphValues.current.slice(
+      paragraphValues.current.length - rawCount,
+      paragraphValues.current.length
     );
-    let divider = paraArr.current.length / rawCount;
+    let divider = paragraphValues.current.length / rawCount;
     for (let i = divider - 1; i >= 0; i--) {
       for (let j = 0; j < rawCount; j++) {
         if (tParaArr[j] === "" || tParaArr[j] === undefined) {
           if (
-            paraArr.current[i + j] !== "" &&
-            paraArr.current[i + j] !== undefined
+            paragraphValues.current[i + j] !== "" &&
+            paragraphValues.current[i + j] !== undefined
           ) {
-            tParaArr[j] = paraArr.current[i + j];
+            tParaArr[j] = paragraphValues.current[i + j];
           }
         }
       }
@@ -242,13 +233,13 @@ export default function Parse(props) {
       if (typeof dataPoint === "string") {
         rawList.push(dataPoint);
       } else if (dataPoint.props.size === "small") {
-        rawList.push(inputArr.current[inRaw]);
+        rawList.push(inputValues.current[inRaw]);
         inRaw++;
       } else if (dataPoint.props.store !== undefined) {
         rawList.push(tParaArr[paRaw]);
         paRaw++;
       } else {
-        rawList.push(selectArr.current[slRaw]);
+        rawList.push(selectValues.current[slRaw]);
         slRaw++;
       }
     });
@@ -258,25 +249,15 @@ export default function Parse(props) {
     }
 
     navigator.clipboard.writeText(rawList.join("").trim());
-    setCIcon(<DoneIcon />);
-    setTimeout(function() {
-      setCIcon(<FileCopyIcon />);
-    }, 1250);
   };
 
+  useImperativeHandle(ref, () => ({ copy }));
+
   return (
-    <ThemeProvider theme={theme}>
-      <MUITypography align="left" style={{ whiteSpace: "pre-line" }}>
-        {data}
-      </MUITypography>
-      <MUIButton
-        color="primary"
-        onClick={showRaw}
-        variant="contained"
-        startIcon={cIcon}
-      >
-        Copy to clipboard
-      </MUIButton>
-    </ThemeProvider>
+    <MUITypography component="div" align="left" style={{ whiteSpace: "pre-line" }}>
+      {data}
+    </MUITypography>
   );
-}
+});
+
+export default Parse;

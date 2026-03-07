@@ -1,27 +1,19 @@
 "use strict";
 require("dotenv").config();
-const log = console.log;
 
 const express = require("express");
-// starting the express server
 const app = express();
 
-// mongoose and mongo connection
 const { mongoose } = require("./db/mongoose");
 
-// import the mongoose models
 const { User } = require("./models/user");
 const { Cover } = require("./models/cover");
 
-// body-parser is built into Express since 4.16 - no separate package needed
 app.use(express.json());
 
-// express-session for managing user sessions
 const session = require("express-session");
 app.use(express.urlencoded({ extended: true }));
 
-/*** User handling **************************************/
-// Create a session cookie
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "change-this-in-production",
@@ -36,7 +28,6 @@ app.use(
   })
 );
 
-// Middleware to require an authenticated session
 const requireAuth = (req, res, next) => {
   if (req.session.user) {
     next();
@@ -45,30 +36,23 @@ const requireAuth = (req, res, next) => {
   }
 };
 
-// A route to login and create a session
 app.post("/users/login", (req, res) => {
   const username = req.body.username.toLowerCase();
   const password = req.body.password;
 
-  // Use the static method on the User model to find a user
-  // by their username and password
   User.findByUsernamePassword(username, password)
     .then(user => {
-      // Add the user's id to the session cookie.
-      // We can check later if this exists to ensure we are logged in.
       req.session.user = user._id;
       req.session.username = user.username;
       res.send({ currentUser: user.username, userID: user._id });
     })
     .catch(error => {
-      log('Login error:', error);
+      console.log('Login error:', error);
       res.status(400).send({ error: 'Invalid username or password' });
     });
 });
 
-// A route to logout a user
 app.get("/users/logout", (req, res) => {
-  // Remove the session
   req.session.destroy(error => {
     if (error) {
       res.status(500).send(error);
@@ -78,7 +62,6 @@ app.get("/users/logout", (req, res) => {
   });
 });
 
-// A route to check if a use is logged in on the session cookie
 app.get("/users/check-session", (req, res) => {
   if (req.session.user) {
     res.send({ currentUser: req.session.username, userID: req.session.user });
@@ -87,21 +70,18 @@ app.get("/users/check-session", (req, res) => {
   }
 });
 
-// Set up a POST route to *create* a user
 app.post("/users/register", (req, res) => {
-  // Create a new user
   const user = new User({
     username: req.body.username.toLowerCase(),
     password: req.body.password
   });
 
-  // Save the user
   user.save().then(
     user => {
       res.send(user);
     },
     error => {
-      log('Registration error:', error);
+      console.log('Registration error:', error);
       if (error.code === 11000) {
         res.status(400).send({ error: 'Username already exists' });
       } else {
@@ -111,12 +91,6 @@ app.post("/users/register", (req, res) => {
   );
 });
 
-/*********************************************************/
-
-/*** API Routes below ************************************/
-
-/** Page resource routes **/
-// a POST request to create a user's page
 app.post("/covers/new", requireAuth, (req, res) => {
   const coverID = new mongoose.Types.ObjectId().toHexString();
 
@@ -129,7 +103,6 @@ app.post("/covers/new", requireAuth, (req, res) => {
 
   cover.save().then(
     result => {
-      // Append to list of covers
       const userID = req.body.owner;
       User.findOneAndUpdate(
         { _id: userID },
@@ -145,13 +118,12 @@ app.post("/covers/new", requireAuth, (req, res) => {
       );
     },
     error => {
-      log(error);
+      console.log(error);
       res.status(500).send(error);
     }
   );
 });
 
-// a GET route to get covers based on user
 app.get("/covers/:id", requireAuth, (req, res) => {
   const id = req.params.id;
 
@@ -164,25 +136,20 @@ app.get("/covers/:id", requireAuth, (req, res) => {
       }
     })
     .catch(error => {
-      log(error);
+      console.log(error);
       res.status(500).send(error);
     });
 });
 
-// a PATCH route to save cover to a user
 app.patch("/covers/:cid", requireAuth, (req, res) => {
   const cid = req.params.cid;
-
-  // get the updated name and year only from the request body.
   const { data } = req.body;
-  const body = { data };
 
   if (!mongoose.Types.ObjectId.isValid(cid)) {
     res.status(404).send();
   }
 
-  // Update the cover by their id.
-  Cover.findByIdAndUpdate(cid, { $set: body }, { new: true })
+  Cover.findByIdAndUpdate(cid, { $set: { data } }, { new: true })
     .then(cover => {
       if (!cover) {
         res.status(404).send();
@@ -195,14 +162,8 @@ app.patch("/covers/:cid", requireAuth, (req, res) => {
     });
 });
 
-
-// a DELETE route to delete cover to a user
 app.delete("/covers/:cid", requireAuth, (req, res) => {
   const cid = req.params.cid;
-
-  // get the updated name and year only from the request body.
-  const { data } = req.body;
-  const body = { data };
 
   if (!mongoose.Types.ObjectId.isValid(cid)) {
     res.status(404).send();
@@ -217,23 +178,17 @@ app.delete("/covers/:cid", requireAuth, (req, res) => {
       }
     })
     .catch(error => {
-      res.status(500).send(); // server error, could not delete.
+      res.status(500).send();
     });
 });
 
-
-/*** Webpage routes below **********************************/
-// Serve the build
 app.use(express.static(__dirname + "/client/build"));
 
-// All routes other than above will go to index.html
 app.get("/*splat", (req, res) => {
   res.sendFile(__dirname + "/client/build/index.html");
 });
 
-/*************************************************/
-// Express server listening...
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
-  log(`Listening on port ${port}...`);
+  console.log(`Listening on port ${port}...`);
 });

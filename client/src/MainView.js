@@ -1,5 +1,3 @@
-/* The Authenticated View (after logging in) */
-
 import React from "react";
 import { Route, Routes, BrowserRouter, Navigate } from "react-router-dom";
 

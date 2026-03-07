@@ -1,5 +1,3 @@
-// getState is used to get the value of a state path
-// setState is used to set the value of a state path
 import { getState, setState } from "../store";
 import { autoHide } from "./helpers";
 
@@ -12,7 +10,6 @@ export const newCover = title => {
       data: ""
     })
 
-  // Create our request constructor with all the parameters we need
   const request = new Request(url, {
     method: "post",
     body: userCover,
@@ -22,7 +19,6 @@ export const newCover = title => {
     }
   });
 
-  // Send the request with fetch()
   fetch(request)
     .then(res => {
       if (res.status === 200) {
@@ -38,21 +34,17 @@ export const newCover = title => {
 };
 
 export const getUserCovers = () => {
-  // the URL for the request
   const url = "/covers/" + getState("userID");
 
-  // Since this is a GET request, simply call fetch on the URL
   fetch(url)
     .then(res => {
       if (res.status === 200) {
-        // return a promise that resolves with the JSON body
         return res.json();
       } else {
         console.error("Failed to load covers:", res.status);
       }
     })
     .then(json => {
-      // the resolved promise with the JSON body
       setState("userCovers", json);
     })
     .catch(error => {
@@ -75,7 +67,6 @@ export const saveUserCover = () => {
     }
   });
 
-  // Send the request with fetch()
   fetch(request)
     .then(res => {
       if (res.status === 200) {
@@ -106,7 +97,6 @@ export const deleteUserCover = () => {
     }
   });
 
-  // Send the request with fetch()
   fetch(request)
     .then(res => {
       if (res.status === 200) {
@@ -124,52 +114,82 @@ export const deleteUserCover = () => {
 };
 
 export const defaultCover = userID => {
-  const url = "/covers/new";
+  const templates = [
+    {
+      title: "Cover Letter",
+      data: `Dear {_},
 
-  let data = `Dear {_},
-
-I'm excited to be applying to {_} for the position of {_}! I found your job posting over at {_}, and I believe that my skills and experience match well with the requirements outlined.
-
-With over {_} years of experience working as a {_} in {_}, I am seeking a challenging role that enables me to tap my full potential.
-
-I have a {proven track record of professionalism and efficiency to foster customer satisfaction/great problem resolution insight resulting in customer retention}
+I am writing to express my strong interest in the {_} position at {_}. I came across this opportunity {on your website/through LinkedIn/on Indeed/via a referral}, and I believe my background makes me an excellent fit for your team.
 
 {*}
 
-This is a sample page template that demonstrates the dynamic features of Page Forge. Customize it to create your own content.           
+Over the past {_} years, I have built expertise in {_}, with a particular focus on {_}. I am drawn to {_} because of its commitment to {_}, and I am confident I can contribute meaningfully from day one.
 
-Thank you for your time. I look forward to meeting with you.
+Thank you for considering my application. I would welcome the chance to discuss this role further at your convenience.
 
-Best Regards,
+Sincerely,
 {_}
 
-{Bank Work|In addition to the above distinguishing factors, I have always focused on providing exceptional customer service; I have performed transactions in complete accordance to the policies and procedures of the bank, and I have put my best efforts forward to offer insight in streamlining operations and assist customer retention.}
-{Personal|What I like most about my current job is that it gives me the opportunity to learn and be creative, and it looks like this position would do the same. I feel that I could be a valuable asset to your team, and I bring to the table all of the skills that you require in an editor.}`;
+{Accomplishments|During my time at my previous role, I led a cross-functional initiative that resulted in a measurable improvement in team efficiency and directly supported the organization's broader strategic goals.}
+{Culture Fit|I am drawn to collaborative, mission-driven environments where curiosity and continuous learning are valued. I believe I would thrive within your culture and contribute positively to the team dynamic.}
+{Technical Strength|My hands-on experience with industry tools and my commitment to staying current with best practices allow me to hit the ground running and deliver high-quality work consistently.}`
+    },
+    {
+      title: "Cold-Call Email",
+      data: `Subject: {_}
 
-  // Create our request constructor with all the parameters we need
-  const request = new Request(url, {
-    method: "post",
-    body: JSON.stringify({
-      owner: userID,
-      title: "Sample Page",
-      data: data
-    }),
-    headers: {
-      Accept: "application/json, text/plain, */*",
-      "Content-Type": "application/json"
+Hi {_},
+
+My name is {_} from {_}. I came across {_} and wanted to reach out directly.
+
+We help {businesses/teams/companies} {save time and reduce costs/scale faster/improve their workflow/increase revenue} with {_}, and based on what I know about {_}, I think there could be a strong fit.
+
+{*}
+
+Would you be open to a quick {10-minute/15-minute/30-minute} call {this week/next week/at your convenience} to explore this?
+
+Best,
+{_}
+{_} | {_}
+{_}
+
+{Value Proposition|Our solution has helped similar companies reduce operational overhead significantly, freeing their teams to focus on higher-impact work. I'd love to walk you through a quick example relevant to your industry.}
+{Social Proof|We work with a number of companies in your space and have consistently delivered measurable results within the first 90 days of engagement.}
+{Low-Pressure Close|There is no obligation — just a quick conversation to see if what we do is relevant to where you are headed. If it is not a fit, I will say so.}`
+    },
+    {
+      title: "Interview Follow-Up",
+      data: `Subject: Thank You — {_} Interview
+
+Dear {_},
+
+Thank you for taking the time to speak with me {today/yesterday} about the {_} role at {_}. I genuinely enjoyed our conversation and came away even more excited about the opportunity.
+
+{*}
+
+I remain very enthusiastic about joining {_} and feel confident that my experience in {_} would allow me to contribute effectively to your team's goals. Please feel free to reach out if there is any additional information I can provide.
+
+I look forward to hearing from you.
+
+Best regards,
+{_}
+
+{Specific Moment|One part of our conversation that stood out was the discussion around the team's upcoming priorities. It reinforced that this is exactly the kind of challenge I am looking for, and one where I believe I can make a real impact.}
+{Reiterate Interest|The more I learn about the role and the company, the more confident I am that this would be a strong mutual fit. I am genuinely excited about the direction your team is headed.}`
     }
-  });
+  ];
 
-  // Send the request with fetch()
-  fetch(request)
-    .then(res => {
-      if (res.status === 200) {
-        setTimeout(function() {
-          getUserCovers();
-        }, 2000);
+  const createCover = ({ title, data }) =>
+    fetch("/covers/new", {
+      method: "POST",
+      body: JSON.stringify({ owner: userID, title, data }),
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        "Content-Type": "application/json"
       }
-    })
-    .catch(error => {
-      console.log(error);
     });
+
+  Promise.all(templates.map(createCover))
+    .then(() => getUserCovers())
+    .catch(error => console.log(error));
 };

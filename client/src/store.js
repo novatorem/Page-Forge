@@ -9,7 +9,6 @@ const useAppStore = create(() => ({}));
 
 export default useAppStore;
 
-/** Set a value at a dot-notation path, e.g. setState("loginForm.username", "alice") */
 export const setState = (path, value) => {
   if (typeof path === "string" && path.includes(".")) {
     const dotIndex = path.indexOf(".");
@@ -23,7 +22,6 @@ export const setState = (path, value) => {
   }
 };
 
-/** Get a value at a dot-notation path, or the full state if no path given */
 export const getState = path => {
   const state = useAppStore.getState();
   if (path === undefined) return state;
@@ -36,24 +34,18 @@ export const getState = path => {
   return state[path];
 };
 
-/**
- * Subscribe to state changes.
- * If filterFn is provided (as in BaseReactComponent.filterState),
- * the callback is only invoked when the filtered result actually changes.
- */
 export const subscribe = (callback, filterFn) => {
-  let prevResultStr;
+  let previousSnapshot;
   return useAppStore.subscribe(state => {
     const result = filterFn ? filterFn(state) : state;
-    const resultStr = JSON.stringify(result);
-    if (resultStr !== prevResultStr) {
-      prevResultStr = resultStr;
+    const currentSnapshot = JSON.stringify(result);
+    if (currentSnapshot !== previousSnapshot) {
+      previousSnapshot = currentSnapshot;
       callback(result);
     }
   });
 };
 
-/** Unsubscribe from a subscription returned by subscribe() */
 export const unsubscribe = subscription => {
   if (typeof subscription === "function") {
     subscription();

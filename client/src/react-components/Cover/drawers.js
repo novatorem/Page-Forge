@@ -16,20 +16,17 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import CssBaseline from "@mui/material/CssBaseline";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemButton from "@mui/material/ListItemButton";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ExitToAppRoundedIcon from "@mui/icons-material/ExitToAppRounded";
-import { ThemeProvider } from "@mui/material/styles";
 
 import Page from "./page";
 import NewCover from "./new";
 import { setState, getState } from "../../store";
 import { logout } from "../../actions/user";
 import { saveUserCover } from "../../actions/cover";
-import theme from "../../theme";
 
 const drawerWidth = 175;
 
@@ -60,26 +57,29 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 
 const Main = styled("main", {
   shouldForwardProp: prop => prop !== "open"
-})(({ theme, open }) => ({
-  flexGrow: 1,
-  // Top: clear the fixed AppBar + 16px breathing room. Sides/bottom: 16px uniform gap.
-  padding: `calc(${theme.spacing(8)} + 16px) ${theme.spacing(2)} ${theme.spacing(2)}`,
-  boxSizing: "border-box",
-  transition: theme.transitions.create("margin", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen
-  }),
-  marginLeft: `-${drawerWidth}px`,
-  height: "100%",
-  background: "var(--bg-base)",
-  ...(open && {
+})(({ theme, open }) => {
+  const appBarClearance = `calc(${theme.spacing(8)} + ${theme.spacing(2)})`;
+  const edgePadding = theme.spacing(2);
+  return {
+    flexGrow: 1,
+    padding: `${appBarClearance} ${edgePadding} ${edgePadding}`,
+    boxSizing: "border-box",
     transition: theme.transitions.create("margin", {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen
     }),
-    marginLeft: 0
-  })
-}));
+    marginLeft: `-${drawerWidth}px`,
+    height: "100%",
+    background: "var(--bg-base)",
+    ...(open && {
+      transition: theme.transitions.create("margin", {
+        easing: theme.transitions.easing.easeOut,
+        duration: theme.transitions.duration.enteringScreen
+      }),
+      marginLeft: 0
+    })
+  };
+});
 
 export default function VerticalDrawer(props) {
   const introCover = {
@@ -137,8 +137,6 @@ export default function VerticalDrawer(props) {
 
   return (
     <div style={{ display: "flex", height: "100%" }}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
         <StyledAppBar position="fixed" open={open}>
           <Toolbar>
             <IconButton
@@ -159,7 +157,6 @@ export default function VerticalDrawer(props) {
               {title}
             </Typography>
 
-            {/* SAVE - if in a cover, show the save button */}
             {cover ? (
               <IconButton
                 aria-label="save"
@@ -169,7 +166,6 @@ export default function VerticalDrawer(props) {
               </IconButton>
             ) : null}
 
-            {/* MORE - Extra menu items */}
             <IconButton
               aria-label="more"
               aria-controls="long-menu"
@@ -185,7 +181,6 @@ export default function VerticalDrawer(props) {
               open={Boolean(anchorEl)}
               onClose={menuClose}
             >
-              {/* INFO - opens the info dialogue page */}
               <MenuItem onClick={handleInfoOpen}>
                 <ListItemIcon>
                   <InfoIcon fontSize="small" />
@@ -193,7 +188,6 @@ export default function VerticalDrawer(props) {
                 <Typography>Info</Typography>
               </MenuItem>
 
-              {/* DELETE - if in a cover, show the delete button*/}
               {cover ? (
                 <MenuItem onClick={deleteCover}>
                   <ListItemIcon>
@@ -203,7 +197,6 @@ export default function VerticalDrawer(props) {
                 </MenuItem>
               ) : null}
 
-              {/* LOGOUT - Submenu option to log out */}
               <MenuItem onClick={logout}>
                 <ListItemIcon>
                   <ExitToAppRoundedIcon fontSize="small" />
@@ -234,7 +227,6 @@ export default function VerticalDrawer(props) {
           </DrawerHeader>
           <Divider />
           <List>
-            {/* Drawer List - Populates all the pages on the drawer */}
             {props.userCovers
               ? props.userCovers.map((userCover, index) => (
                   <ListItemButton
@@ -259,7 +251,6 @@ export default function VerticalDrawer(props) {
         <Main open={open}>
           {content}
         </Main>
-      </ThemeProvider>
     </div>
   );
 }

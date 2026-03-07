@@ -1,5 +1,3 @@
-// getState is used to get the value of a state path
-// setState is used to set the value of a state path
 import { getState, setState } from "../store";
 import { setEmptyState, autoHide } from "./helpers";
 import { getUserCovers, defaultCover } from "./cover";
@@ -33,7 +31,6 @@ export const updateLoginForm = field => {
 export const login = () => {
   setState("loginClick", true);
 
-  // Create our request constructor with all the parameters we need
   const request = new Request("/users/login", {
     method: "post",
     body: JSON.stringify(getState("loginForm")),
@@ -42,7 +39,6 @@ export const login = () => {
       "Content-Type": "application/json"
     }
   });
-  // Send the request with fetch()
   fetch(request)
     .then(res => {
       if (res.status === 200) {
@@ -75,7 +71,6 @@ export const login = () => {
 };
 
 export const register = event => {
-  // Create our request constructor with all the parameters we need
   const request = new Request("/users/register", {
     method: "post",
     body: JSON.stringify(getState("loginForm")),
@@ -85,7 +80,6 @@ export const register = event => {
     }
   });
 
-  // Send the request with fetch()
   fetch(request)
     .then(res => {
       if (res.status === 200) {
@@ -94,18 +88,14 @@ export const register = event => {
     })
     .then(json => {
       if (json !== undefined) {
-        // Successful registration
-        // Create the sample page
         defaultCover(json._id);
         setState("registered", true);
         autoHide("registered");
         login();
       } else if (getState("loginForm").password.length < 6) {
-        // Short password
         setState("passwordShort", true);
         autoHide("passwordShort");
       } else {
-        // Invalid username
         setState("invalidUsername", true);
         autoHide("invalidUsername");
       }

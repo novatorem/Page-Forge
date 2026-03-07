@@ -1,11 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { styled } from "@mui/material/styles";
+import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import DoneIcon from "@mui/icons-material/Done";
+import FileCopyIcon from "@mui/icons-material/FileCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
@@ -19,33 +23,29 @@ const MUIGrid = styled(Grid)({
 });
 
 const MUITextField = styled(TextField)({
+  flex: 1,
+  minHeight: 0,
   marginTop: "15px",
-  height: "calc(100% - 18px)",
-  overflow: "scroll",
-  scrollbarWidth: "none",
-  // Remove the browser's default bright focus ring on the underlying <textarea>
-  "& textarea": { outline: "none" }
-});
-
-const MUIHeader = styled(Typography)({
-  marginBottom: "4px"
-});
-
-// Positioned relative to whichever Paper it lives inside
-const VisButton = styled(Button)({
-  position: "absolute",
-  bottom: "var(--spacing-edge)",
-  left: "var(--spacing-edge)",
-  zIndex: 1
+  "& .MuiInputBase-root": {
+    height: "100%",
+    alignItems: "flex-start",
+    overflow: "auto"
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    border: "none"
+  },
+  "& textarea": {
+    outline: "none",
+    resize: "none"
+  }
 });
 
 export default function Page(props) {
   const cover = props.cover;
   const [data, setData] = useState(cover.data);
   const [visibility, setVisibility] = useState(true);
-  const [visibilityIcon, setvisibilityIcon] = useState(
-    <VisibilityIcon />
-  );
+  const [cIcon, setCIcon] = useState(<FileCopyIcon />);
+  const parseRef = useRef(null);
 
   // Detect if mobile or laptop to orient grid
   let direction = "column";
@@ -64,13 +64,13 @@ export default function Page(props) {
   };
 
   const handleVisibility = () => {
-    if (visibility === true) {
-      setVisibility(false);
-      setvisibilityIcon(<VisibilityOffIcon />);
-    } else {
-      setVisibility(true);
-      setvisibilityIcon(<VisibilityIcon />);
-    }
+    setVisibility(v => !v);
+  };
+
+  const handleCopy = () => {
+    parseRef.current?.copy();
+    setCIcon(<DoneIcon />);
+    setTimeout(() => setCIcon(<FileCopyIcon />), 1250);
   };
 
   return (
@@ -78,37 +78,47 @@ export default function Page(props) {
       <MUIGrid container alignItems="stretch" spacing={2} direction={direction}>
         {visibility ? (
           <MUIGrid size="grow">
-            <Paper sx={{ padding: "12px 20px", height: "100%", position: "relative" }} elevation={0}>
-              <MUIHeader variant="h6" noWrap>
-                Forge
-              </MUIHeader>
+            <Paper sx={{ padding: "12px 20px", height: "100%", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }} elevation={0}>
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: "4px" }}>
+                <Typography variant="h6" noWrap>Forge</Typography>
+                <IconButton size="small" onClick={handleVisibility} color="primary">
+                  <VisibilityOffIcon fontSize="small" />
+                </IconButton>
+              </Box>
               <Divider />
               <MUITextField
                 id="standard-multiline-flexible"
                 multiline={true}
                 fullWidth={true}
-                InputProps={{ disableUnderline: true }}
                 value={data}
                 onChange={handleChange}
                 autoFocus={true}
               />
-              <VisButton
-                variant="contained"
-                color="primary"
-                onClick={handleVisibility}
-              >
-                {visibilityIcon}
-              </VisButton>
             </Paper>
           </MUIGrid>
         ) : null}
         <MUIGrid size="grow">
-          <Paper sx={{ padding: "12px 20px", height: "100%", position: "relative" }} elevation={0}>
-            <MUIHeader variant="h6" noWrap>
-              True
-            </MUIHeader>
+          <Paper sx={{ padding: "12px 20px", height: "100%", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }} elevation={0}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: "4px" }}>
+              <Typography variant="h6" noWrap>True</Typography>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                {!visibility && (
+                  <IconButton size="small" onClick={handleVisibility} color="primary">
+                    <VisibilityIcon fontSize="small" />
+                  </IconButton>
+                )}
+                <Button
+                  size="small"
+                  color="primary"
+                  variant="text"
+                  startIcon={cIcon}
+                  onClick={handleCopy}
+                >Copy
+                </Button>
+              </Box>
+            </Box>
             <Divider />
-            <Parse data={data} />
+            <Parse ref={parseRef} data={data} />
           </Paper>
         </MUIGrid>
       </MUIGrid>

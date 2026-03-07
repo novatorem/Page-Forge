@@ -1,4 +1,3 @@
-import React from "react";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import Button from "@mui/material/Button";
@@ -13,9 +12,6 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import TableContainer from "@mui/material/TableContainer";
 import DialogContentText from "@mui/material/DialogContentText";
-import { ThemeProvider } from "@mui/material/styles";
-import theme from "../../theme";
-
 import { setState } from "../../store";
 
 function createData(name, text, symbol, comment) {
@@ -50,7 +46,6 @@ export default function Info(props) {
   };
 
   return (
-    <ThemeProvider theme={theme}>
       <Dialog fullWidth={true} maxWidth="lg" open={true} onClose={handleClose}>
         <DialogTitle id="max-width-dialog-title">Page Forge</DialogTitle>
         <Divider />
@@ -96,6 +91,5 @@ export default function Info(props) {
           </Button>
         </DialogActions>
       </Dialog>
-    </ThemeProvider>
   );
 }

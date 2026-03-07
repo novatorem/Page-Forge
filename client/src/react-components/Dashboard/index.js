@@ -1,4 +1,3 @@
-/*  Full Dashboard component */
 import "./styles.css";
 
 import Cover from "./../Cover";

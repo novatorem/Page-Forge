@@ -30,7 +30,11 @@ const MUIDialogContent = styled(DialogContent)({
 });
 
 const MUILinearProgress = styled(LinearProgress)({
-  margin: "2rem"
+  position: "fixed",
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 9999
 });
 
 function MUIDialogTitle(props) {
@@ -226,7 +230,6 @@ export default function Login() {
 
         {loginClick === true && <MUILinearProgress />}
 
-        {/* Snackbars for notifications */}
         {loginError === true && (
           <Snackbar
             severity="error"
