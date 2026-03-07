@@ -27,50 +27,22 @@ export const setEmptyState = () => {
   setState("saveSuccess", false);
   setState("deleteSuccess", false);
 
-  setState(
-    "introCover",
-    `I've gone ahead and created a sample page for you. You can create your own or access the sample by clicking the hamburger menu on the top left corner of the page.
-
-For a quick guide, you can create input forms with {_}.
-
-Selectors can be created with {this/that/or anything else}.
-
-To create paragraph selectors, use:
-
-{*}
-
-But to create paragraphs themselves, you can set them up like the end of this text.
-They're then hidden and accessible only from the paragraph selector!
-
-Treat this as you would MarkDown, then edit the final version and copy it to your clipboard.
-
-If you have any questions, comments, or issues, please open a story on github.
-
-{Sample Paragraph|Lorem Ipsum and so on}
-{Another one|What's the rest of Lorem Ipsum?}`
-  );
-
   setState("tryCover", {
-    data: `Hello, and welcome to Page Forge! The way this web-app works is by requiring you, the user, to first provide the "markdown".
+    data: `Hello, and welcome to Page Forge! Write your template on the left - the interactive version appears on the right. Fill in the fields, then copy or print the result.
 
-You'll notice that the left side is where you provide the raw text. On the right side, the formatted version appears. Your forged page then provides the fields for you to work with.
+Text inputs use {_}, like: Hello {_},
 
-For a quick guide, you can create input forms with {_}.
+Dropdowns use {this/that/or anything else}, like: I'll meet up with you {immediately/next week}.
 
-Selectors can be created with {this/that/or anything else}.
+Date pickers use {date} and pre-fill with today's date.
 
-To create paragraph selectors, use:
+Number inputs use {#}, like: I have {#} instances that can be deployed.
 
-{*}
+Optional text uses {?:sentence to include or omit} - click the checkbox to toggle it in the output.
 
-But to create paragraphs themselves, you can set them up like the end of this text.
-They're then hidden and accessible only from the paragraph selector!
+Paragraph selectors use {*} to pick from named blocks defined at the end of the template.
 
-Treat this as you would markdown, then edit the final version and copy it to your clipboard.
-
-If you have any questions, comments, or issues, please open a story on GitHub.
-
-{Sample Paragraph|Lorem Ipsum and so on}
-{Another one|What's the rest of Lorem Ipsum?}`
+{Strong Closer|I can be sure that this will save you a lot of time and effort.}
+{Brief Closer|Thank you for your time and consideration. I look forward to hearing from you.}`
   });
 };

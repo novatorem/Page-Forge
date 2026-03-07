@@ -1,6 +1,6 @@
 import { getState, setState } from "../store";
 import { setEmptyState, autoHide } from "./helpers";
-import { getUserCovers, defaultCover } from "./cover";
+import { getUserCovers } from "./cover";
 
 export const readCookie = () => {
   fetch("/users/check-session")
@@ -79,7 +79,6 @@ export const register = event => {
     })
     .then(json => {
       if (json !== undefined) {
-        defaultCover(json._id);
         setState("registered", true);
         autoHide("registered");
         login();

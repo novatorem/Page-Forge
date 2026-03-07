@@ -19,25 +19,13 @@ function createData(name, text, symbol, comment) {
 }
 
 const rows = [
-  createData("Input", "{_}", "_____", "Creates an input field"),
-  createData(
-    "Selector",
-    "{.../.../...}",
-    "__ ↓",
-    "Allows you to select from any number of text"
-  ),
-  createData(
-    "Paragraph Data",
-    "{Title|Paragraph Text}",
-    "",
-    "Fills paragraph data to be picked by a field"
-  ),
-  createData(
-    "Paragraph Field",
-    "{*}",
-    "☰",
-    "Creates a paragraph selector to choose a set of data"
-  )
+  createData("Input", "{_}", "_____", "Creates a text input field"),
+  createData("Selector", "{.../.../...}", "__ ↓", "Dropdown to select from any number of options"),
+  createData("Date", "{date}", "📅", "Date picker, pre-filled with today's date"),
+  createData("Number", "{#}", "0 ↕", "Numeric input field"),
+  createData("Optional", "{?:text}", "☐ text", "Checkbox that includes or omits the text"),
+  createData("Paragraph Data", "{Title|Paragraph Text}", "", "Defines a paragraph block to be picked by a selector"),
+  createData("Paragraph Field", "{*}", "☰", "Creates a paragraph selector to choose a defined block")
 ];
 
 export default function Info(props) {

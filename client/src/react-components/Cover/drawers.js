@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -72,11 +73,16 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 const Main = styled("main", {
   shouldForwardProp: prop => prop !== "open"
 })(({ theme, open }) => {
-  const appBarClearance = `calc(${theme.spacing(8)} + ${theme.spacing(2)})`;
   const edgePadding = theme.spacing(2);
   return {
     flexGrow: 1,
-    padding: `${appBarClearance} ${edgePadding} ${edgePadding}`,
+    paddingLeft: edgePadding,
+    paddingRight: edgePadding,
+    paddingBottom: edgePadding,
+    paddingTop: `calc(${theme.spacing(9)} + ${edgePadding})`, // 72px toolbar (mobile 56px + 16px gap)
+    [theme.breakpoints.up("sm")]: {
+      paddingTop: `calc(${theme.spacing(8)} + ${edgePadding})` // 80px toolbar (desktop 64px + 16px gap)
+    },
     boxSizing: "border-box",
     transition: theme.transitions.create("margin", {
       easing: theme.transitions.easing.sharp,
@@ -135,10 +141,12 @@ export default function VerticalDrawer(props) {
   const navigate = useNavigate();
   const { coverId: routeCoverId } = useParams();
   const deleteSuccess = useAppStore(s => s.deleteSuccess);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const defaultContent = <EmptyState userCovers={props.userCovers} />;
 
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(() => window.innerWidth >= 600);
   const [cover, setCover] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [content, setContent] = useState(defaultContent);
@@ -153,6 +161,10 @@ export default function VerticalDrawer(props) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
+
+  useEffect(() => {
+    if (isMobile) setOpen(false);
+  }, [isMobile]);
 
   useEffect(() => {
     if (!props.userCovers) return;
@@ -248,14 +260,14 @@ export default function VerticalDrawer(props) {
 
   return (
     <div style={{ display: "flex", height: "100%" }}>
-      <StyledAppBar position="fixed" open={open}>
+      <StyledAppBar position="fixed" open={isMobile ? false : open}>
         <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             onClick={handleDrawerOpen}
             edge="start"
-            sx={{ mr: 2, ...(open && { display: "none" }) }}
+            sx={{ mr: 2, ...(!isMobile && open && { display: "none" }) }}
           >
             <MenuIcon />
           </IconButton>
@@ -366,13 +378,14 @@ export default function VerticalDrawer(props) {
       <Drawer
         sx={{
           position: "relative",
-          width: drawerWidth,
+          width: isMobile ? 0 : drawerWidth,
           flexShrink: 0,
           "& .MuiDrawer-paper": { width: drawerWidth }
         }}
-        variant="persistent"
+        variant={isMobile ? "temporary" : "persistent"}
         anchor="left"
         open={open}
+        onClose={() => setOpen(false)}
       >
         <DrawerHeader>
           <Button onClick={resetContent} sx={{ textTransform: "none" }}>
@@ -412,6 +425,7 @@ export default function VerticalDrawer(props) {
                     setContent(<Page cover={userCover} />);
                     setSelectedCoverId(userCover._id);
                     navigate(`/dashboard/${userCover._id}`);
+                    if (isMobile) setOpen(false);
                   }}
                 />
               ))}
@@ -421,7 +435,7 @@ export default function VerticalDrawer(props) {
 
         <NewCover />
       </Drawer>
-      <Main open={open}>
+      <Main open={isMobile ? true : open}>
         <ErrorBoundary>
           {content}
         </ErrorBoundary>

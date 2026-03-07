@@ -1,37 +1,26 @@
-import { useRef, forwardRef, useImperativeHandle } from "react";
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { styled } from "@mui/material/styles";
-
+import Box from "@mui/material/Box";
 import Select from "@mui/material/Select";
+import Checkbox from "@mui/material/Checkbox";
 import MenuItem from "@mui/material/MenuItem";
-import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import FormControl from "@mui/material/FormControl";
 
+import {
+  MUITextField,
+  MUIFormControl,
+  NumberForge,
+  parseForgeContent,
+  formatIsoDate,
+  initLocalValues,
+  makePartsGetter,
+  renderForgeParts
+} from "./forgeComponents";
 import Para from "./para";
 import { printText } from "../Shared/printUtils";
 
 import "./styles.css";
-
-const MUITextField = styled(TextField)({
-  display: "inline-flex",
-  verticalAlign: "middle",
-  marginTop: "2px",
-  marginBottom: "2px",
-  "& .MuiInputBase-input": {
-    padding: "2px 8px"
-  }
-});
-
-const MUIFormControl = styled(FormControl)({
-  display: "inline-flex",
-  verticalAlign: "middle",
-  marginTop: "2px",
-  marginBottom: "2px",
-  minWidth: 120,
-  "& .MuiSelect-select": {
-    padding: "2px 32px 2px 8px"
-  }
-});
 
 const MUITypography = styled(Typography)({
   overflow: "auto",
@@ -39,6 +28,61 @@ const MUITypography = styled(Typography)({
   flex: 1,
   minHeight: 0
 });
+
+function OptionalForge({ parts, closureCount, optionalGetters }) {
+  const [checked, setChecked] = useState(false);
+  const checkedRef = useRef(false);
+  const localValues = useRef(initLocalValues(parts));
+
+  useEffect(() => {
+    const getter = makePartsGetter(parts, localValues);
+    optionalGetters[closureCount] = () => checkedRef.current ? getter() : "";
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggle = () => {
+    const next = !checkedRef.current;
+    checkedRef.current = next;
+    setChecked(next);
+  };
+
+  return (
+    <Box
+      component="span"
+      data-forgetype="optional"
+      role="checkbox"
+      aria-checked={checked}
+      tabIndex={0}
+      onClick={toggle}
+      onKeyDown={e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); } }}
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        verticalAlign: "middle",
+        cursor: "pointer",
+        userSelect: "none",
+        gap: 0.25,
+        mx: 0.25
+      }}
+    >
+      <Checkbox size="small" checked={checked} onChange={() => {}} tabIndex={-1} sx={{ p: 0 }} />
+      <Box
+        component="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 0.25,
+          color: checked ? "text.primary" : "text.disabled",
+          textDecoration: checked ? "none" : "line-through",
+          fontSize: "inherit",
+          lineHeight: "inherit"
+        }}
+      >
+        {renderForgeParts(parts, localValues, true)}
+      </Box>
+    </Box>
+  );
+}
 
 const Parse = forwardRef(function Parse(props, ref) {
   const inputValues = useRef([]);
@@ -48,6 +92,12 @@ const Parse = forwardRef(function Parse(props, ref) {
   const paragraphValues = useRef([]);
   const paragraphCount = useRef(-1);
   const paragraphData = useRef([]);
+  const dateValues = useRef([]);
+  const dateCount = useRef(-1);
+  const numberValues = useRef([]);
+  const numberCount = useRef(-1);
+  const optionalGetters = useRef([]);
+  const optionalCount = useRef(-1);
 
   const CTextField = function() {
     inputCount.current++;
@@ -90,6 +140,51 @@ const Parse = forwardRef(function Parse(props, ref) {
     );
   };
 
+  const CDate = function() {
+    dateCount.current++;
+    const today = new Date().toISOString().split("T")[0];
+    dateValues.current.push(today);
+    const closureCount = dateCount.current;
+    return (
+      <MUITextField
+        key={`date-${closureCount}`}
+        data-forgetype="date"
+        type="date"
+        size="small"
+        defaultValue={today}
+        onChange={e => { dateValues.current[closureCount] = e.target.value; }}
+        sx={{ width: 155, colorScheme: "dark" }}
+      />
+    );
+  };
+
+  const CNumber = function() {
+    numberCount.current++;
+    numberValues.current.push("0");
+    const closureCount = numberCount.current;
+    return (
+      <NumberForge
+        key={`number-${closureCount}`}
+        data-forgetype="number"
+        onChange={v => { numberValues.current[closureCount] = v; }}
+      />
+    );
+  };
+
+  const COptional = function(parts) {
+    optionalCount.current++;
+    const closureCount = optionalCount.current;
+    return (
+      <OptionalForge
+        key={`optional-${closureCount}`}
+        data-forgetype="optional"
+        parts={parts}
+        closureCount={closureCount}
+        optionalGetters={optionalGetters.current}
+      />
+    );
+  };
+
   const CParagraph = function() {
     paragraphCount.current++;
     const closureCount = paragraphCount.current;
@@ -97,7 +192,6 @@ const Parse = forwardRef(function Parse(props, ref) {
       <Para
         key={`paragraph-${closureCount}`}
         paragraphs={paragraphData.current}
-        initialValue={paragraphValues.current[closureCount] || ""}
         paragraphValues={paragraphValues.current}
         closureCount={closureCount}
       />
@@ -105,9 +199,7 @@ const Parse = forwardRef(function Parse(props, ref) {
   };
 
   const createSelectors = function(element) {
-    if (typeof element === "object") {
-      return element;
-    }
+    if (typeof element !== "string") return element;
 
     const listRegx = /{[\w\s-.,;:`"'()]*\/.*?}/g;
     let select = element.split(listRegx);
@@ -124,27 +216,36 @@ const Parse = forwardRef(function Parse(props, ref) {
     return select;
   };
 
-  const filterParagraphs = function(element) {
-    if (typeof element[0] !== "string") {
-      return element;
-    }
-    paragraphData.current = [];
-    // JS bug with trailing last character caused by regex new line
-    ///{.+\|(.|[\r\n])+?}/g;
-    const listRegx = /{.+\|.+?}/g;
-    let paragraphParts = element.split(listRegx);
+  const createDates = function(element) {
+    if (typeof element !== "string") return element;
+    const parts = element.split("{date}");
+    return parts.map((part, i) => (i < parts.length - 1 ? [part, CDate()] : [part])).flat();
+  };
+
+  const createNumbers = function(element) {
+    if (typeof element !== "string") return element;
+    const parts = element.split("{#}");
+    return parts.map((part, i) => (i < parts.length - 1 ? [part, CNumber()] : [part])).flat();
+  };
+
+  // Optionals are processed on the raw source string before any other forge type
+  // can fragment their content. The regex allows nested single-level {forge} tokens.
+  const createOptionals = function(str) {
+    if (typeof str !== "string") return str;
+    const splitRegx = /\{\?:(?:[^{}]|\{[^}]*\})+\}/g;
+    const matchRegx = /\{\?:((?:[^{}]|\{[^}]*\})+)\}/g;
+    let parts = str.split(splitRegx);
     let match;
-
-    while ((match = listRegx.exec(element)) !== null) {
-      paragraphData.current.push(match);
+    let indx = 1;
+    while ((match = matchRegx.exec(str)) !== null) {
+      parts.splice(indx, 0, COptional(parseForgeContent(match[1])));
+      indx += 2;
     }
-
-    paragraphParts = paragraphParts.filter(item => item);
-    return paragraphParts;
+    return parts.filter(item => item !== "");
   };
 
   const createParagraphs = function(element) {
-    if (typeof element[0] !== "string") {
+    if (typeof element !== "string") {
       return element;
     }
 
@@ -170,15 +271,35 @@ const Parse = forwardRef(function Parse(props, ref) {
     inputCount.current = -1;
     selectCount.current = -1;
     paragraphCount.current = -1;
+    dateCount.current = -1;
+    numberCount.current = -1;
+    optionalCount.current = -1;
 
-    const input = sourceStr.split("{_}");
-    const inputDone = [...input]
-      .map((e, i) => (i < input.length - 1 ? [e, CTextField()] : [e]))
-      .reduce((a, b) => a.concat(b));
+    // Extract paragraph DATA blocks {Title|text} from the raw source string first,
+    // before any other step can fragment their content. Supports up to two levels
+    // of nested forge tokens inside the paragraph text (e.g. {?:{#}}).
+    paragraphData.current = [];
+    const paraDataRegx = /\{[^|{}]+\|(?:[^{}]|\{(?:[^{}]|\{[^}]*\})*\})*\}/g;
+    let paraMatch;
+    while ((paraMatch = paraDataRegx.exec(sourceStr)) !== null) {
+      paragraphData.current.push(paraMatch);
+    }
+    const stripped = sourceStr.replace(paraDataRegx, "");
+
+    // Optionals second — must run before {_}/{#}/{date}/selectors split the string
+    let optionalDone = createOptionals(stripped);
+
+    // Text inputs on remaining string segments
+    let inputDone = optionalDone.map(e => {
+      if (typeof e !== "string") return e;
+      const splits = e.split("{_}");
+      return splits.map((s, i) => i < splits.length - 1 ? [s, CTextField()] : [s]).flat();
+    }).flat();
 
     let selectDone = inputDone.map(createSelectors).flat();
-    let paraFilter = selectDone.map(filterParagraphs).flat();
-    let paraDone = paraFilter.map(createParagraphs).flat();
+    let dateDone = selectDone.map(createDates).flat();
+    let numberDone = dateDone.map(createNumbers).flat();
+    let paraDone = numberDone.map(createParagraphs).flat();
 
     return paraDone;
   }
@@ -196,24 +317,35 @@ const Parse = forwardRef(function Parse(props, ref) {
     let inRaw = 0;
     let slRaw = 0;
     let paRaw = 0;
+    let dtRaw = 0;
+    let nmRaw = 0;
+    let opRaw = 0;
     const rawList = [];
 
     data.forEach(dataPoint => {
       if (typeof dataPoint === "string") {
         rawList.push(dataPoint);
+        return;
+      }
+      const ft = dataPoint.props["data-forgetype"];
+      if (ft === "date") {
+        const iso = dateValues.current[dtRaw++] || "";
+        rawList.push(iso ? formatIsoDate(iso) : "");
+      } else if (ft === "number") {
+        rawList.push(numberValues.current[nmRaw++] ?? "");
+      } else if (ft === "optional") {
+        rawList.push(optionalGetters.current[opRaw++]?.() ?? "");
       } else if (dataPoint.props.size === "small") {
-        rawList.push(inputValues.current[inRaw]);
-        inRaw++;
-      } else if (dataPoint.props.initialValue !== undefined) {
-        rawList.push(paragraphValues.current[paRaw]);
-        paRaw++;
+        rawList.push(inputValues.current[inRaw++]);
+      } else if (dataPoint.type === Para) {
+        const val = paragraphValues.current[paRaw++];
+        rawList.push(typeof val === "function" ? val() : (val || ""));
       } else {
-        rawList.push(selectValues.current[slRaw]);
-        slRaw++;
+        rawList.push(selectValues.current[slRaw++]);
       }
     });
 
-    while (rawList[rawList.length - 1] === "") {
+    while (rawList[rawList.length - 1] === "" || rawList[rawList.length - 1] == null) {
       rawList.pop();
     }
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import CloseIcon from "@mui/icons-material/Close";
@@ -90,7 +91,8 @@ const theme = createTheme(baseTheme, {
 
 export default function Login() {
   const [trying, setTrying] = useState(false);
-  const [rightPanelActive, setRightPanelActive] = useState(true);
+  const [rightPanelActive, setRightPanelActive] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 600px)");
 
   const {
     loginClick,
@@ -121,6 +123,60 @@ export default function Login() {
     e.preventDefault();
     setTrying(false);
   };
+
+  if (isMobile) {
+    const isSignUp = rightPanelActive;
+    return (
+      <ThemeProvider theme={theme}>
+        <div className="login__bg-image" style={{ width: "100%", minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem", boxSizing: "border-box" }}>
+          <div style={{ width: "100%", maxWidth: 340, background: "rgba(18, 20, 32, 0.88)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", borderRadius: "0.7rem", padding: "2rem", boxSizing: "border-box", border: "1px solid rgba(255,255,255,0.07)", boxShadow: "0 0.9rem 1.7rem rgba(0,0,0,.3)" }}>
+            <h2 className="form__title" style={{ marginTop: 0, color: "#fff" }}>
+              {isSignUp ? "Sign Up" : "Sign In"}
+            </h2>
+            <form className="form" style={{ height: "auto", padding: 0 }}>
+              <TextField
+                name="username"
+                label="Username"
+                variant="standard"
+                className="login__input app__input app__horizontal-center"
+                margin="none"
+                autoFocus
+                onChange={e => updateLoginForm(e.target)}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); isSignUp ? register() : login(); } }}
+              />
+              <Password login={!isSignUp} />
+              <Button className="login__button" sx={{ mt: 2 }} onClick={isSignUp ? register : login}>
+                {isSignUp ? "Register" : "Log In"}
+              </Button>
+            </form>
+            <div style={{ textAlign: "center", marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem", alignItems: "center" }}>
+              <button className="btn" style={{ padding: "0.6rem 2rem", fontSize: "0.75rem" }} onClick={() => setRightPanelActive(v => !v)}>
+                {isSignUp ? "Sign In" : "Sign Up"}
+              </button>
+              <button className="btn" style={{ padding: "0.6rem 2rem", fontSize: "0.75rem" }} onClick={handleOpen}>
+                Try Me
+              </button>
+            </div>
+          </div>
+
+          <Dialog fullScreen open={trying} onClose={handleClose}>
+            <MUIDialogTitle onClose={handleClose}>Try Me</MUIDialogTitle>
+            <Divider />
+            <MUIDialogContent dividers={false}>
+              {tryCover && <Page cover={tryCover} />}
+            </MUIDialogContent>
+          </Dialog>
+
+          {loginClick === true && <MUILinearProgress />}
+          {loginError === true && <Snackbar severity="error" message="Error logging in, please refresh." />}
+          {failedLogin === true && <Snackbar severity="error" message="Invalid username/password combination" />}
+          {invalidUsername === true && <Snackbar severity="error" message="Failed to register, choose a different username" />}
+          {passwordShort === true && <Snackbar severity="warning" message="Password too short, minimum of 6 characters" />}
+          {registered === true && <Snackbar severity="success" message="Registered, welcome!" />}
+        </div>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>

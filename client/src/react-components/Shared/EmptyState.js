@@ -5,12 +5,18 @@ import Typography from "@mui/material/Typography";
 import AddIcon from "@mui/icons-material/Add";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import ToggleOnIcon from "@mui/icons-material/ToggleOn";
+import TodayIcon from "@mui/icons-material/Today";
+import NumbersIcon from "@mui/icons-material/Numbers";
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import { setState } from "../../store";
 
 const features = [
   { icon: <EditNoteIcon />, label: "{_}", description: "Text input field" },
   { icon: <ToggleOnIcon />, label: "{this/that}", description: "Dropdown selector" },
+  { icon: <TodayIcon />, label: "{date}", description: "Date picker" },
+  { icon: <NumbersIcon />, label: "{#}", description: "Number input" },
+  { icon: <CheckBoxOutlineBlankIcon />, label: "{?:text}", description: "Optional text" },
   { icon: <FormatListBulletedIcon />, label: "{*}", description: "Paragraph picker" }
 ];
 

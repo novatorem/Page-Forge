@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
@@ -50,8 +53,11 @@ const MUITextField = styled(TextField)({
 
 export default function Page(props) {
   const cover = props.cover;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [data, setData] = useState(cover.data);
   const [visibility, setVisibility] = useState(true);
+  const [activePanel, setActivePanel] = useState("true");
   const [richCopy, setRichCopy] = useState(false);
   const [cIcon, setCIcon] = useState(<FileCopyIcon />);
   const [saveStatus, setSaveStatus] = useState("idle");
@@ -153,9 +159,7 @@ export default function Page(props) {
     }, UNDO_COMMIT_DELAY);
   };
 
-  const handleVisibility = () => {
-    setVisibility(v => !v);
-  };
+  const handleVisibility = () => setVisibility(v => !v);
 
   const handleCopy = () => {
     if (richCopy) {
@@ -167,9 +171,7 @@ export default function Page(props) {
     setTimeout(() => setCIcon(<FileCopyIcon />), 1250);
   };
 
-  const handlePrint = () => {
-    parseRef.current?.print();
-  };
+  const handlePrint = () => parseRef.current?.print();
 
   const saveStatusLabel = {
     unsaved: "Unsaved",
@@ -177,68 +179,93 @@ export default function Page(props) {
     saved: "Saved"
   }[saveStatus];
 
+  // Mobile: tabs control which panel is shown; desktop: visibility toggle
+  const showForge = isMobile ? activePanel === "forge" : visibility;
+  const showTrue = isMobile ? activePanel === "true" : true;
+
+  const forgePaper = (
+    <Paper sx={{ padding: "16px 20px", height: "100%", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }} elevation={0}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {!isMobile && <Typography variant="h6" noWrap>Forge</Typography>}
+          {cover._id && saveStatus !== "idle" && (
+            <Typography variant="caption" color={saveStatus === "saved" ? "success.main" : "text.secondary"}>
+              {saveStatusLabel}
+            </Typography>
+          )}
+        </Box>
+        {!isMobile && (
+          <IconButton size="small" onClick={handleVisibility} color="primary">
+            <VisibilityOffIcon fontSize="small" />
+          </IconButton>
+        )}
+      </Box>
+      {!isMobile && <Divider />}
+      <MUITextField
+        id="standard-multiline-flexible"
+        multiline={true}
+        fullWidth={true}
+        value={data}
+        onChange={handleChange}
+        autoFocus={!isMobile}
+        sx={{ marginTop: isMobile ? "8px" : "16px" }}
+      />
+    </Paper>
+  );
+
+  const truePaper = (
+    <Paper sx={{ padding: "16px 20px", height: "100%", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }} elevation={0}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        {!isMobile && <Typography variant="h6" noWrap>True</Typography>}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: isMobile ? "auto" : 0 }}>
+          {!isMobile && !visibility && (
+            <IconButton size="small" onClick={handleVisibility} color="primary">
+              <VisibilityIcon fontSize="small" />
+            </IconButton>
+          )}
+          <Tooltip title={richCopy ? "Rich text copy (for email clients)" : "Plain text copy"}>
+            <IconButton size="small" color={richCopy ? "primary" : "default"} onClick={() => setRichCopy(r => !r)}>
+              {richCopy ? <SubjectIcon fontSize="small" /> : <FormatClearIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
+          <IconButton size="small" color="primary" onClick={handlePrint}>
+            <PrintIcon fontSize="small" />
+          </IconButton>
+          <Button size="small" color="primary" variant="text" startIcon={cIcon} onClick={handleCopy}>
+            Copy
+          </Button>
+        </Box>
+      </Box>
+      {!isMobile && <Divider />}
+      <Parse ref={parseRef} data={data} />
+    </Paper>
+  );
+
   return (
-    <div style={{ height: "100%" }}>
-      <MUIGrid container alignItems="stretch" spacing={2} direction={direction}>
-        {visibility ? (
-          <MUIGrid size="grow">
-            <Paper sx={{ padding: "16px 20px", height: "100%", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }} elevation={0}>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Typography variant="h6" noWrap>Forge</Typography>
-                  {cover._id && saveStatus !== "idle" && (
-                    <Typography variant="caption" color={saveStatus === "saved" ? "success.main" : "text.secondary"}>
-                      {saveStatusLabel}
-                    </Typography>
-                  )}
-                </Box>
-                <IconButton size="small" onClick={handleVisibility} color="primary">
-                  <VisibilityOffIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Divider />
-              <MUITextField
-                id="standard-multiline-flexible"
-                multiline={true}
-                fullWidth={true}
-                value={data}
-                onChange={handleChange}
-                autoFocus={true}
-              />
-            </Paper>
-          </MUIGrid>
-        ) : null}
-        <MUIGrid size="grow">
-          <Paper sx={{ padding: "16px 20px", height: "100%", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }} elevation={0}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <Typography variant="h6" noWrap>True</Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                {!visibility && (
-                  <IconButton size="small" onClick={handleVisibility} color="primary">
-                    <VisibilityIcon fontSize="small" />
-                  </IconButton>
-                )}
-                <Tooltip title={richCopy ? "Rich text copy (for email clients)" : "Plain text copy"}>
-                  <IconButton size="small" color={richCopy ? "primary" : "default"} onClick={() => setRichCopy(r => !r)}>
-                    {richCopy ? <SubjectIcon fontSize="small" /> : <FormatClearIcon fontSize="small" />}
-                  </IconButton>
-                </Tooltip>
-                <IconButton size="small" color="primary" onClick={handlePrint}>
-                  <PrintIcon fontSize="small" />
-                </IconButton>
-                <Button
-                  size="small"
-                  color="primary"
-                  variant="text"
-                  startIcon={cIcon}
-                  onClick={handleCopy}
-                >Copy
-                </Button>
-              </Box>
-            </Box>
-            <Divider />
-            <Parse ref={parseRef} data={data} />
-          </Paper>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      {isMobile && (
+        <Tabs
+          value={activePanel}
+          onChange={(_, v) => setActivePanel(v)}
+          sx={{ minHeight: 40, mb: 1 }}
+          TabIndicatorProps={{ style: { height: 2 } }}
+        >
+          <Tab label="Forge" value="forge" sx={{ minHeight: 40, py: 0.5 }} />
+          <Tab label="True" value="true" sx={{ minHeight: 40, py: 0.5 }} />
+        </Tabs>
+      )}
+      <MUIGrid
+        container
+        alignItems="stretch"
+        spacing={isMobile ? 0 : 2}
+        direction={isMobile ? "row" : direction}
+        sx={{ flex: 1, minHeight: 0 }}
+      >
+        <MUIGrid size="grow" sx={{ display: showForge ? undefined : "none" }}>
+          {forgePaper}
+        </MUIGrid>
+        <MUIGrid size="grow" sx={{ display: showTrue ? undefined : "none" }}>
+          {truePaper}
         </MUIGrid>
       </MUIGrid>
     </div>

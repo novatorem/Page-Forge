@@ -1,32 +1,48 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import MenuItem from "@mui/material/MenuItem";
-import Typography from "@mui/material/Typography";
 import SubjectIcon from "@mui/icons-material/Subject";
+
+import {
+  parseForgeContent,
+  initLocalValues,
+  makePartsGetter,
+  renderForgeParts
+} from "./forgeComponents";
 
 export default function Para(props) {
   const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedValue, setSelectedValue] = useState(props.initialValue || "");
+  const [selectedParts, setSelectedParts] = useState(null);
+  const localValues = useRef([]);
 
-  const handleOpen = event => {
-    setAnchorEl(event.currentTarget);
+  const handleOpen = event => setAnchorEl(event.currentTarget);
+
+  const handleSelect = raw => {
+    if (raw !== undefined) {
+      const parts = parseForgeContent(raw);
+      localValues.current = initLocalValues(parts);
+      setSelectedParts(parts);
+      props.paragraphValues[props.closureCount] = makePartsGetter(parts, localValues);
+    }
+    setAnchorEl(null);
   };
 
-  const handleClose = value => {
-    if (value !== undefined) {
-      props.paragraphValues[props.closureCount] = value;
-      setSelectedValue(value);
-    }
+  const handleClear = () => {
+    setSelectedParts(null);
+    localValues.current = [];
+    props.paragraphValues[props.closureCount] = "";
     setAnchorEl(null);
   };
 
   return (
     <Box sx={{ mt: 1 }}>
-      {selectedValue && (
-        <Typography align="left" sx={{ mb: 0.5 }}>{selectedValue}</Typography>
+      {selectedParts && (
+        <Box sx={{ mb: 0.5, whiteSpace: "pre-line" }}>
+          {renderForgeParts(selectedParts, localValues)}
+        </Box>
       )}
       <Button
         size="small"
@@ -35,25 +51,25 @@ export default function Para(props) {
         startIcon={<SubjectIcon />}
         onClick={handleOpen}
       >
-        {selectedValue ? "Change" : "Select paragraph"}
+        {selectedParts ? "Change" : "Select paragraph"}
       </Button>
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
-        onClose={() => handleClose(undefined)}
+        onClose={() => setAnchorEl(null)}
       >
         {props.paragraphs.map(paragraph => {
           const raw = paragraph[0].substring(1, paragraph[0].length - 1);
           const label = raw.split("|")[0];
           const value = raw.split("|")[1];
           return (
-            <MenuItem key={value} onClick={() => handleClose(value)}>
+            <MenuItem key={value} onClick={() => handleSelect(value)}>
               {label}
             </MenuItem>
           );
         })}
         <Divider />
-        <MenuItem onClick={() => handleClose("")}>Clear</MenuItem>
+        <MenuItem onClick={handleClear}>Clear</MenuItem>
       </Menu>
     </Box>
   );

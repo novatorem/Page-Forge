@@ -1,6 +1,6 @@
 # Page Forge
 
-A dynamic page creator that allows you to forge custom pages through the use of a custom markdown solution. This webapp was built with React, Node, and MongoDB - alongside some other frameworks like express, bcrypt, and mui. 
+A dynamic page creator that allows you to forge custom pages through the use of a custom template syntax. Write a template once, fill it in every time. Built with React, Node, MongoDB, Express, bcryptjs, MUI, and Vite.
 
 [Use it here!](https://page-forge.novac.dev/)
 
@@ -14,10 +14,13 @@ When writing templates, you can use the custom symbols below to insert interacti
 
 Name | Text | Symbol | Comment
 --- | --- | :---: | ---
-Input|{_}|_____|Creates an input field
-Selector|{.../.../...}|___ ↓|Allows you to select from any number of text
-Paragraph Data|{Title\|Paragraph Text}| |Fills paragraph data to be picked by a field
-Paragraph Field|{*}|☰|Creates a paragraph selector to choose a set of data
+Input|`{_}`|`_____`|Creates a text input field
+Selector|`{.../.../...}`|`___ ↓`|Dropdown to select from any number of options
+Date|`{date}`|`📅`|Date picker, pre-filled with today's date
+Number|`{#}`|`0 ↕`|Numeric input field
+Optional|`{?:text}`|`☐ text`|Checkbox that includes or omits the text in output
+Paragraph Data|`{Title\|Paragraph Text}`| |Defines a named paragraph block
+Paragraph Field|`{*}`|`☰`|Creates a selector to pick a defined paragraph block
 
 ## Tech Features
 
@@ -25,17 +28,22 @@ Paragraph Field|{*}|☰|Creates a paragraph selector to choose a set of data
   <tr>
     <td>Encrypted Login</td>
     <td>Session Handling</td>
-    <td>Zustand</td>
+    <td>Zustand State</td>
   </tr>
   <tr>
-    <td>Adaptive UI</td>
-    <td>Single Page</td>
-    <td>Memory Optimization</td>
+    <td>Auto Save</td>
+    <td>Undo / Redo</td>
+    <td>URL-based Routing</td>
   </tr>
   <tr>
-    <td>Dynamic Editing</td>
-    <td>Custom Views</td>
-    <td><sub><sup>🚧</sup></sub> Auto Save</td>
+    <td>Drag-to-Reorder</td>
+    <td>Rich Text Copy</td>
+    <td>PDF Print</td>
+  </tr>
+  <tr>
+    <td>Mobile Responsive</td>
+    <td>Rate Limiting</td>
+    <td>Vite Build</td>
   </tr>
 </table>
 
@@ -109,7 +117,6 @@ Page Forge
         │   └── ...
         ├── store.js
         ├── index.js
-        ├── index.css
         ├── App.js
         ├── App.css
         └── MainView.js
