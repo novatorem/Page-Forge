@@ -1,69 +1,114 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { styled } from "@mui/material/styles";
-
+import Box from "@mui/material/Box";
 import Select from "@mui/material/Select";
-import Button from "@mui/material/Button";
-import DoneIcon from "@mui/icons-material/Done";
+import Checkbox from "@mui/material/Checkbox";
 import MenuItem from "@mui/material/MenuItem";
-import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import FileCopyIcon from "@mui/icons-material/FileCopy";
 import FormControl from "@mui/material/FormControl";
 
+import {
+  MUITextField,
+  MUIFormControl,
+  NumberForge,
+  parseForgeContent,
+  formatIsoDate,
+  initLocalValues,
+  makePartsGetter,
+  renderForgeParts
+} from "./forgeComponents";
 import Para from "./para";
-
-import { ThemeProvider } from "@mui/material/styles";
-import theme from "../../theme";
+import { printText } from "../Shared/printUtils";
 
 import "./styles.css";
-
-const MUITextField = styled(TextField)({
-  marginTop: "-1px",
-  marginBottom: "1px"
-});
-
-const MUIFormControl = styled(FormControl)({
-  marginTop: "-3px",
-  marginBottom: "3px"
-});
-
-const MUIButton = styled(Button)({
-  position: "absolute",
-  bottom: "var(--spacing-edge)",
-  right: "var(--spacing-edge)"
-});
 
 const MUITypography = styled(Typography)({
   overflow: "auto",
   marginTop: "15px",
-  height: "calc(100% - 18px)",
-  scrollbarWidth: "none"
+  flex: 1,
+  minHeight: 0
 });
 
-export default function Parse(props) {
-  // Per-instance mutable storage for interactive element values.
-  // useRef so values survive re-renders without triggering them.
-  const inputArr = useRef([]);
-  const inputCount = useRef(-1);
-  const selectArr = useRef([]);
-  const selectCount = useRef(-1);
-  const paraArr = useRef([]);
-  const paraCount = useRef(-1);
-  const paragraphData = useRef([]);
+function OptionalForge({ parts, closureCount, optionalGetters }) {
+  const [checked, setChecked] = useState(false);
+  const checkedRef = useRef(false);
+  const localValues = useRef(initLocalValues(parts));
 
-  // ── Factory functions ────────────────────────────────────────────────────
-  // Defined inside the component so they close over the per-instance refs
-  // instead of shared module-level variables.
+  useEffect(() => {
+    const getter = makePartsGetter(parts, localValues);
+    optionalGetters[closureCount] = () => checkedRef.current ? getter() : "";
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggle = () => {
+    const next = !checkedRef.current;
+    checkedRef.current = next;
+    setChecked(next);
+  };
+
+  return (
+    <Box
+      component="span"
+      data-forgetype="optional"
+      role="checkbox"
+      aria-checked={checked}
+      tabIndex={0}
+      onClick={toggle}
+      onKeyDown={e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); } }}
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        verticalAlign: "middle",
+        cursor: "pointer",
+        userSelect: "none",
+        gap: 0.25,
+        mx: 0.25
+      }}
+    >
+      <Checkbox size="small" checked={checked} onChange={() => {}} tabIndex={-1} sx={{ p: 0 }} />
+      <Box
+        component="span"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 0.25,
+          color: checked ? "text.primary" : "text.disabled",
+          textDecoration: checked ? "none" : "line-through",
+          fontSize: "inherit",
+          lineHeight: "inherit"
+        }}
+      >
+        {renderForgeParts(parts, localValues, true)}
+      </Box>
+    </Box>
+  );
+}
+
+const Parse = forwardRef(function Parse(props, ref) {
+  const inputValues = useRef([]);
+  const inputCount = useRef(-1);
+  const selectValues = useRef([]);
+  const selectCount = useRef(-1);
+  const paragraphValues = useRef([]);
+  const paragraphCount = useRef(-1);
+  const paragraphData = useRef([]);
+  const dateValues = useRef([]);
+  const dateCount = useRef(-1);
+  const numberValues = useRef([]);
+  const numberCount = useRef(-1);
+  const optionalGetters = useRef([]);
+  const optionalCount = useRef(-1);
 
   const CTextField = function() {
     inputCount.current++;
-    inputArr.current.push("");
+    inputValues.current.push("");
     const closureCount = inputCount.current;
     return (
       <MUITextField
+        key={`input-${closureCount}`}
         size="small"
         onChange={e => {
-          inputArr.current[closureCount] = e.target.value;
+          inputValues.current[closureCount] = e.target.value;
         }}
       />
     );
@@ -71,7 +116,7 @@ export default function Parse(props) {
 
   const CSelect = function(match) {
     selectCount.current++;
-    selectArr.current.push("");
+    selectValues.current.push("");
     const closureCount = selectCount.current;
 
     match = match.substring(1, match.length - 1);
@@ -81,10 +126,12 @@ export default function Parse(props) {
     ));
 
     return (
-      <MUIFormControl>
+      <MUIFormControl key={`select-${closureCount}`}>
         <Select
+          size="small"
+          defaultValue=""
           onChange={e => {
-            selectArr.current[closureCount] = e.target.value;
+            selectValues.current[closureCount] = e.target.value;
           }}
         >
           {menus}
@@ -93,26 +140,66 @@ export default function Parse(props) {
     );
   };
 
+  const CDate = function() {
+    dateCount.current++;
+    const today = new Date().toISOString().split("T")[0];
+    dateValues.current.push(today);
+    const closureCount = dateCount.current;
+    return (
+      <MUITextField
+        key={`date-${closureCount}`}
+        data-forgetype="date"
+        type="date"
+        size="small"
+        defaultValue={today}
+        onChange={e => { dateValues.current[closureCount] = e.target.value; }}
+        sx={{ width: 155, colorScheme: "dark" }}
+      />
+    );
+  };
+
+  const CNumber = function() {
+    numberCount.current++;
+    numberValues.current.push("0");
+    const closureCount = numberCount.current;
+    return (
+      <NumberForge
+        key={`number-${closureCount}`}
+        data-forgetype="number"
+        onChange={v => { numberValues.current[closureCount] = v; }}
+      />
+    );
+  };
+
+  const COptional = function(parts) {
+    optionalCount.current++;
+    const closureCount = optionalCount.current;
+    return (
+      <OptionalForge
+        key={`optional-${closureCount}`}
+        data-forgetype="optional"
+        parts={parts}
+        closureCount={closureCount}
+        optionalGetters={optionalGetters.current}
+      />
+    );
+  };
+
   const CParagraph = function() {
-    paraCount.current++;
-    paraArr.current.push("");
-    const closureCount = paraCount.current;
+    paragraphCount.current++;
+    const closureCount = paragraphCount.current;
     return (
       <Para
+        key={`paragraph-${closureCount}`}
         paragraphs={paragraphData.current}
-        store={paraArr.current[closureCount]}
-        paraArr={paraArr.current}
+        paragraphValues={paragraphValues.current}
         closureCount={closureCount}
       />
     );
   };
 
-  // ── Parsing pipeline ────────────────────────────────────────────────────
-
   const createSelectors = function(element) {
-    if (typeof element === "object") {
-      return element;
-    }
+    if (typeof element !== "string") return element;
 
     const listRegx = /{[\w\s-.,;:`"'()]*\/.*?}/g;
     let select = element.split(listRegx);
@@ -129,27 +216,36 @@ export default function Parse(props) {
     return select;
   };
 
-  const filterParagraphs = function(element) {
-    if (typeof element[0] !== "string") {
-      return element;
-    }
-    paragraphData.current = [];
-    // JS bug with trailing last character caused by regex new line
-    ///{.+\|(.|[\r\n])+?}/g;
-    const listRegx = /{.+\|.+?}/g;
-    let paraData = element.split(listRegx);
+  const createDates = function(element) {
+    if (typeof element !== "string") return element;
+    const parts = element.split("{date}");
+    return parts.map((part, i) => (i < parts.length - 1 ? [part, CDate()] : [part])).flat();
+  };
+
+  const createNumbers = function(element) {
+    if (typeof element !== "string") return element;
+    const parts = element.split("{#}");
+    return parts.map((part, i) => (i < parts.length - 1 ? [part, CNumber()] : [part])).flat();
+  };
+
+  // Optionals are processed on the raw source string before any other forge type
+  // can fragment their content. The regex allows nested single-level {forge} tokens.
+  const createOptionals = function(str) {
+    if (typeof str !== "string") return str;
+    const splitRegx = /\{\?:(?:[^{}]|\{[^}]*\})+\}/g;
+    const matchRegx = /\{\?:((?:[^{}]|\{[^}]*\})+)\}/g;
+    let parts = str.split(splitRegx);
     let match;
-
-    while ((match = listRegx.exec(element)) !== null) {
-      paragraphData.current.push(match);
+    let indx = 1;
+    while ((match = matchRegx.exec(str)) !== null) {
+      parts.splice(indx, 0, COptional(parseForgeContent(match[1])));
+      indx += 2;
     }
-
-    paraData = paraData.filter(item => item);
-    return paraData;
+    return parts.filter(item => item !== "");
   };
 
   const createParagraphs = function(element) {
-    if (typeof element[0] !== "string") {
+    if (typeof element !== "string") {
       return element;
     }
 
@@ -174,109 +270,119 @@ export default function Parse(props) {
 
     inputCount.current = -1;
     selectCount.current = -1;
-    // paraCount is intentionally NOT reset — the paragraph ordering
-    // hack in showRaw relies on the array growing across renders.
+    paragraphCount.current = -1;
+    dateCount.current = -1;
+    numberCount.current = -1;
+    optionalCount.current = -1;
 
-    const input = sourceStr.split("{_}");
-    const inputDone = [...input]
-      .map((e, i) => (i < input.length - 1 ? [e, CTextField()] : [e]))
-      .reduce((a, b) => a.concat(b));
+    // Extract paragraph DATA blocks {Title|text} from the raw source string first,
+    // before any other step can fragment their content. Supports up to two levels
+    // of nested forge tokens inside the paragraph text (e.g. {?:{#}}).
+    paragraphData.current = [];
+    const paraDataRegx = /\{[^|{}]+\|(?:[^{}]|\{(?:[^{}]|\{[^}]*\})*\})*\}/g;
+    let paraMatch;
+    while ((paraMatch = paraDataRegx.exec(sourceStr)) !== null) {
+      paragraphData.current.push(paraMatch);
+    }
+    const stripped = sourceStr.replace(paraDataRegx, "");
+
+    // Optionals second — must run before {_}/{#}/{date}/selectors split the string
+    let optionalDone = createOptionals(stripped);
+
+    // Text inputs on remaining string segments
+    let inputDone = optionalDone.map(e => {
+      if (typeof e !== "string") return e;
+      const splits = e.split("{_}");
+      return splits.map((s, i) => i < splits.length - 1 ? [s, CTextField()] : [s]).flat();
+    }).flat();
 
     let selectDone = inputDone.map(createSelectors).flat();
-    let paraFilter = selectDone.map(filterParagraphs).flat();
-    let paraDone = paraFilter.map(createParagraphs).flat();
+    let dateDone = selectDone.map(createDates).flat();
+    let numberDone = dateDone.map(createNumbers).flat();
+    let paraDone = numberDone.map(createParagraphs).flat();
 
     return paraDone;
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────
-
   const data = getAll(props.data);
-  const [cIcon, setCIcon] = useState(<FileCopyIcon />);
 
-  const showRaw = () => {
+  const buildRawList = () => {
+    while (inputValues.current[inputValues.current.length - 1] === "") {
+      inputValues.current.pop();
+    }
+    while (selectValues.current[selectValues.current.length - 1] === "") {
+      selectValues.current.pop();
+    }
+
     let inRaw = 0;
     let slRaw = 0;
     let paRaw = 0;
-    let rawList = [];
-
-    // Logic creates empty values trailing, remove them
-    while (inputArr.current[inputArr.current.length - 1] === "") {
-      inputArr.current.pop();
-    }
-    while (selectArr.current[selectArr.current.length - 1] === "") {
-      selectArr.current.pop();
-    }
-
-    // --- This fixes a bug in a neat hack ---
-    // paragraphs out of order once changes made to {data}
-    let rawCount = 0;
-    data.forEach(dataPoint => {
-      if (dataPoint.props !== undefined) {
-        if (dataPoint.props.store !== undefined) {
-          rawCount++;
-        }
-      }
-    });
-
-    let tParaArr = paraArr.current.slice(
-      paraArr.current.length - rawCount,
-      paraArr.current.length
-    );
-    let divider = paraArr.current.length / rawCount;
-    for (let i = divider - 1; i >= 0; i--) {
-      for (let j = 0; j < rawCount; j++) {
-        if (tParaArr[j] === "" || tParaArr[j] === undefined) {
-          if (
-            paraArr.current[i + j] !== "" &&
-            paraArr.current[i + j] !== undefined
-          ) {
-            tParaArr[j] = paraArr.current[i + j];
-          }
-        }
-      }
-    }
-    // ---
+    let dtRaw = 0;
+    let nmRaw = 0;
+    let opRaw = 0;
+    const rawList = [];
 
     data.forEach(dataPoint => {
       if (typeof dataPoint === "string") {
         rawList.push(dataPoint);
+        return;
+      }
+      const ft = dataPoint.props["data-forgetype"];
+      if (ft === "date") {
+        const iso = dateValues.current[dtRaw++] || "";
+        rawList.push(iso ? formatIsoDate(iso) : "");
+      } else if (ft === "number") {
+        rawList.push(numberValues.current[nmRaw++] ?? "");
+      } else if (ft === "optional") {
+        rawList.push(optionalGetters.current[opRaw++]?.() ?? "");
       } else if (dataPoint.props.size === "small") {
-        rawList.push(inputArr.current[inRaw]);
-        inRaw++;
-      } else if (dataPoint.props.store !== undefined) {
-        rawList.push(tParaArr[paRaw]);
-        paRaw++;
+        rawList.push(inputValues.current[inRaw++]);
+      } else if (dataPoint.type === Para) {
+        const val = paragraphValues.current[paRaw++];
+        rawList.push(typeof val === "function" ? val() : (val || ""));
       } else {
-        rawList.push(selectArr.current[slRaw]);
-        slRaw++;
+        rawList.push(selectValues.current[slRaw++]);
       }
     });
 
-    while (rawList[rawList.length - 1] === "") {
+    while (rawList[rawList.length - 1] === "" || rawList[rawList.length - 1] == null) {
       rawList.pop();
     }
 
-    navigator.clipboard.writeText(rawList.join("").trim());
-    setCIcon(<DoneIcon />);
-    setTimeout(function() {
-      setCIcon(<FileCopyIcon />);
-    }, 1250);
+    return rawList;
   };
 
+  const copy = () => {
+    navigator.clipboard.writeText(buildRawList().join("").trim());
+  };
+
+  const copyRich = () => {
+    const plainText = buildRawList().join("").trim();
+    const htmlText = plainText
+      .split("\n")
+      .map(line => {
+        const escaped = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return escaped === "" ? "<br>" : `<p style="margin:0">${escaped}</p>`;
+      })
+      .join("\n");
+    const blob = new Blob([htmlText], { type: "text/html" });
+    const plainBlob = new Blob([plainText], { type: "text/plain" });
+    navigator.clipboard.write([
+      new ClipboardItem({ "text/html": blob, "text/plain": plainBlob })
+    ]);
+  };
+
+  const print = () => {
+    printText(buildRawList().join("").trim());
+  };
+
+  useImperativeHandle(ref, () => ({ copy, copyRich, print }));
+
   return (
-    <ThemeProvider theme={theme}>
-      <MUITypography align="left" style={{ whiteSpace: "pre-line" }}>
-        {data}
-      </MUITypography>
-      <MUIButton
-        color="primary"
-        onClick={showRaw}
-        variant="contained"
-        startIcon={cIcon}
-      >
-        Copy to clipboard
-      </MUIButton>
-    </ThemeProvider>
+    <MUITypography component="div" align="left" style={{ whiteSpace: "pre-line" }}>
+      {data}
+    </MUITypography>
   );
-}
+});
+
+export default Parse;

@@ -1,111 +1,76 @@
-import { useState } from "react";
-import PropTypes from "prop-types";
-import List from "@mui/material/List";
-import Grid from "@mui/material/Grid";
-import Avatar from "@mui/material/Avatar";
+import { useState, useRef } from "react";
+import Box from "@mui/material/Box";
+import Menu from "@mui/material/Menu";
 import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import { blue } from "@mui/material/colors";
-import ListItemButton from "@mui/material/ListItemButton";
+import Divider from "@mui/material/Divider";
+import MenuItem from "@mui/material/MenuItem";
 import SubjectIcon from "@mui/icons-material/Subject";
-import Typography from "@mui/material/Typography";
-import ClearAllIcon from "@mui/icons-material/ClearAll";
-import DialogTitle from "@mui/material/DialogTitle";
-import ListItemText from "@mui/material/ListItemText";
-import ListItemAvatar from "@mui/material/ListItemAvatar";
-import "./styles.css";
 
-function SimpleDialog(props) {
-  const { onClose, selectedValue, open } = props;
-
-  const handleClose = () => {
-    onClose(selectedValue);
-  };
-
-  const handleListItemClick = value => {
-    onClose(value);
-  };
-
-  return (
-    <Dialog
-      onClose={handleClose}
-      aria-labelledby="simple-dialog-title"
-      open={open}
-    >
-      <DialogTitle id="simple-dialog-title">Add a Paragraph</DialogTitle>
-      <List>
-        {props.paragraphs.map(
-          paragraph => {
-            paragraph = paragraph[0].substring(1, paragraph[0].length - 1);
-            return (
-              <ListItemButton
-                onClick={() => handleListItemClick(paragraph.split("|")[1])}
-                key={paragraph.split("|")[1]}
-              >
-                <ListItemAvatar>
-                  <Avatar sx={{ bgcolor: blue[100], color: blue[600] }}>
-                    <SubjectIcon />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary={paragraph.split("|")[0]} />
-              </ListItemButton>
-            );
-          }
-        )}
-
-        <ListItemButton autoFocus onClick={() => handleListItemClick("")}>
-          <ListItemAvatar>
-            <Avatar>
-              <ClearAllIcon />
-            </Avatar>
-          </ListItemAvatar>
-          <ListItemText primary="Clear" />
-        </ListItemButton>
-      </List>
-    </Dialog>
-  );
-}
-
-SimpleDialog.propTypes = {
-  onClose: PropTypes.func.isRequired,
-  open: PropTypes.bool.isRequired,
-  selectedValue: PropTypes.string.isRequired
-};
+import {
+  parseForgeContent,
+  initLocalValues,
+  makePartsGetter,
+  renderForgeParts
+} from "./forgeComponents";
 
 export default function Para(props) {
-  const [open, setOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState("");
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedParts, setSelectedParts] = useState(null);
+  const localValues = useRef([]);
 
-  const handleClickOpen = () => {
-    setOpen(true);
+  const handleOpen = event => setAnchorEl(event.currentTarget);
+
+  const handleSelect = raw => {
+    if (raw !== undefined) {
+      const parts = parseForgeContent(raw);
+      localValues.current = initLocalValues(parts);
+      setSelectedParts(parts);
+      props.paragraphValues[props.closureCount] = makePartsGetter(parts, localValues);
+    }
+    setAnchorEl(null);
   };
 
-  const handleClose = value => {
-    props.paraArr[props.closureCount] = value;
-    setOpen(false);
-    setSelectedValue(value);
+  const handleClear = () => {
+    setSelectedParts(null);
+    localValues.current = [];
+    props.paragraphValues[props.closureCount] = "";
+    setAnchorEl(null);
   };
 
   return (
-    <div>
-      <Typography align="left">{selectedValue}</Typography>
-      <br />
-      <Grid container justifyContent="center">
-        <Button
-          variant="outlined"
-          aria-label="paragraph"
-          onClick={handleClickOpen}
-        >
-          <SubjectIcon />
-        </Button>
-      </Grid>
-
-      <SimpleDialog
-        selectedValue={selectedValue}
-        open={open}
-        onClose={handleClose}
-        paragraphs={props.paragraphs}
-      />
-    </div>
+    <Box sx={{ mt: 1 }}>
+      {selectedParts && (
+        <Box sx={{ mb: 0.5, whiteSpace: "pre-line" }}>
+          {renderForgeParts(selectedParts, localValues)}
+        </Box>
+      )}
+      <Button
+        size="small"
+        variant="outlined"
+        color="primary"
+        startIcon={<SubjectIcon />}
+        onClick={handleOpen}
+      >
+        {selectedParts ? "Change" : "Select paragraph"}
+      </Button>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+      >
+        {props.paragraphs.map(paragraph => {
+          const raw = paragraph[0].substring(1, paragraph[0].length - 1);
+          const label = raw.split("|")[0];
+          const value = raw.split("|")[1];
+          return (
+            <MenuItem key={value} onClick={() => handleSelect(value)}>
+              {label}
+            </MenuItem>
+          );
+        })}
+        <Divider />
+        <MenuItem onClick={handleClear}>Clear</MenuItem>
+      </Menu>
+    </Box>
   );
 }

@@ -1,34 +1,27 @@
 "use strict";
 require("dotenv").config();
-const log = console.log;
 
 const express = require("express");
-// starting the express server
 const app = express();
+const rateLimit = require("express-rate-limit");
 
-// mongoose and mongo connection
 const { mongoose } = require("./db/mongoose");
 
-// import the mongoose models
 const { User } = require("./models/user");
 const { Cover } = require("./models/cover");
 
-// body-parser is built into Express since 4.16 - no separate package needed
 app.use(express.json());
 
-// express-session for managing user sessions
 const session = require("express-session");
 app.use(express.urlencoded({ extended: true }));
 
-/*** User handling **************************************/
-// Create a session cookie
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "change-this-in-production",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 90 * 24 * 60 * 60 * 1000, // 90 days
+      maxAge: 90 * 24 * 60 * 60 * 1000,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict"
@@ -36,7 +29,25 @@ app.use(
   })
 );
 
-// Middleware to require an authenticated session
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+app.use(generalLimiter);
+
+const MAX_COVER_DATA_BYTES = 100 * 1024;
+const MAX_TITLE_LENGTH = 200;
+
 const requireAuth = (req, res, next) => {
   if (req.session.user) {
     next();
@@ -45,30 +56,32 @@ const requireAuth = (req, res, next) => {
   }
 };
 
-// A route to login and create a session
-app.post("/users/login", (req, res) => {
+const handleSaveError = (error, res) => {
+  if (error.name === "ValidationError") {
+    const message = Object.values(error.errors).map(e => e.message).join(" ");
+    return res.status(400).send({ error: message });
+  }
+  console.log(error);
+  res.status(500).send({ error: "An unexpected error occurred." });
+};
+
+app.post("/users/login", authLimiter, (req, res) => {
   const username = req.body.username.toLowerCase();
   const password = req.body.password;
 
-  // Use the static method on the User model to find a user
-  // by their username and password
   User.findByUsernamePassword(username, password)
     .then(user => {
-      // Add the user's id to the session cookie.
-      // We can check later if this exists to ensure we are logged in.
       req.session.user = user._id;
       req.session.username = user.username;
       res.send({ currentUser: user.username, userID: user._id });
     })
     .catch(error => {
-      log('Login error:', error);
+      console.log('Login error:', error);
       res.status(400).send({ error: 'Invalid username or password' });
     });
 });
 
-// A route to logout a user
 app.get("/users/logout", (req, res) => {
-  // Remove the session
   req.session.destroy(error => {
     if (error) {
       res.status(500).send(error);
@@ -78,7 +91,6 @@ app.get("/users/logout", (req, res) => {
   });
 });
 
-// A route to check if a use is logged in on the session cookie
 app.get("/users/check-session", (req, res) => {
   if (req.session.user) {
     res.send({ currentUser: req.session.username, userID: req.session.user });
@@ -87,21 +99,18 @@ app.get("/users/check-session", (req, res) => {
   }
 });
 
-// Set up a POST route to *create* a user
-app.post("/users/register", (req, res) => {
-  // Create a new user
+app.post("/users/register", authLimiter, (req, res) => {
   const user = new User({
     username: req.body.username.toLowerCase(),
     password: req.body.password
   });
 
-  // Save the user
   user.save().then(
     user => {
       res.send(user);
     },
     error => {
-      log('Registration error:', error);
+      console.log('Registration error:', error);
       if (error.code === 11000) {
         res.status(400).send({ error: 'Username already exists' });
       } else {
@@ -111,47 +120,35 @@ app.post("/users/register", (req, res) => {
   );
 });
 
-/*********************************************************/
-
-/*** API Routes below ************************************/
-
-/** Page resource routes **/
-// a POST request to create a user's page
 app.post("/covers/new", requireAuth, (req, res) => {
+  const { title, data, owner } = req.body;
+
+  if (!title || title.length > MAX_TITLE_LENGTH) {
+    return res.status(400).send({ error: `Title must be between 1 and ${MAX_TITLE_LENGTH} characters.` });
+  }
+  if (data && Buffer.byteLength(data, "utf8") > MAX_COVER_DATA_BYTES) {
+    return res.status(400).send({ error: "Cover content exceeds the 100 KB limit." });
+  }
+
   const coverID = new mongoose.Types.ObjectId().toHexString();
 
-  const cover = new Cover({
-    _id: coverID,
-    title: req.body.title,
-    data: req.body.data,
-    owner: req.body.owner
-  });
+  const cover = new Cover({ _id: coverID, title, data, owner });
 
   cover.save().then(
-    result => {
-      // Append to list of covers
-      const userID = req.body.owner;
+    () => {
       User.findOneAndUpdate(
-        { _id: userID },
+        { _id: owner },
         { $push: { covers: coverID } },
         { upsert: true }
       ).then(
-        result => {
-          res.status(200).send(req.body.title + " created!");
-        },
-        error => {
-          res.status(500).send(error);
-        }
+        () => res.status(200).send(title + " created!"),
+        error => res.status(500).send({ error: "Failed to link cover to user." })
       );
     },
-    error => {
-      log(error);
-      res.status(500).send(error);
-    }
+    error => handleSaveError(error, res)
   );
 });
 
-// a GET route to get covers based on user
 app.get("/covers/:id", requireAuth, (req, res) => {
   const id = req.params.id;
 
@@ -164,25 +161,30 @@ app.get("/covers/:id", requireAuth, (req, res) => {
       }
     })
     .catch(error => {
-      log(error);
+      console.log(error);
       res.status(500).send(error);
     });
 });
 
-// a PATCH route to save cover to a user
 app.patch("/covers/:cid", requireAuth, (req, res) => {
   const cid = req.params.cid;
-
-  // get the updated name and year only from the request body.
-  const { data } = req.body;
-  const body = { data };
+  const { data, title } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(cid)) {
-    res.status(404).send();
+    return res.status(404).send();
+  }
+  if (title !== undefined && title.length > MAX_TITLE_LENGTH) {
+    return res.status(400).send({ error: `Title must be ${MAX_TITLE_LENGTH} characters or fewer.` });
+  }
+  if (data !== undefined && Buffer.byteLength(data, "utf8") > MAX_COVER_DATA_BYTES) {
+    return res.status(400).send({ error: "Cover content exceeds the 100 KB limit." });
   }
 
-  // Update the cover by their id.
-  Cover.findByIdAndUpdate(cid, { $set: body }, { new: true })
+  const update = {};
+  if (data !== undefined) update.data = data;
+  if (title !== undefined) update.title = title;
+
+  Cover.findByIdAndUpdate(cid, { $set: update }, { new: true })
     .then(cover => {
       if (!cover) {
         res.status(404).send();
@@ -190,22 +192,14 @@ app.patch("/covers/:cid", requireAuth, (req, res) => {
         res.send(cover);
       }
     })
-    .catch(error => {
-      res.status(400).send();
-    });
+    .catch(error => handleSaveError(error, res));
 });
 
-
-// a DELETE route to delete cover to a user
 app.delete("/covers/:cid", requireAuth, (req, res) => {
   const cid = req.params.cid;
 
-  // get the updated name and year only from the request body.
-  const { data } = req.body;
-  const body = { data };
-
   if (!mongoose.Types.ObjectId.isValid(cid)) {
-    res.status(404).send();
+    return res.status(404).send();
   }
 
   Cover.findByIdAndDelete(cid)
@@ -217,23 +211,17 @@ app.delete("/covers/:cid", requireAuth, (req, res) => {
       }
     })
     .catch(error => {
-      res.status(500).send(); // server error, could not delete.
+      res.status(500).send();
     });
 });
 
-
-/*** Webpage routes below **********************************/
-// Serve the build
 app.use(express.static(__dirname + "/client/build"));
 
-// All routes other than above will go to index.html
 app.get("/*splat", (req, res) => {
   res.sendFile(__dirname + "/client/build/index.html");
 });
 
-/*************************************************/
-// Express server listening...
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
-  log(`Listening on port ${port}...`);
+  console.log(`Listening on port ${port}...`);
 });

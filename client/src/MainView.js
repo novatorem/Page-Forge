@@ -1,5 +1,3 @@
-/* The Authenticated View (after logging in) */
-
 import React from "react";
 import { Route, Routes, BrowserRouter, Navigate } from "react-router-dom";
 
@@ -11,6 +9,7 @@ export default function MainView() {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/:coverId" element={<Dashboard />} />
         <Route path="*" element={<div>404 Not found</div>} />
       </Routes>
     </BrowserRouter>

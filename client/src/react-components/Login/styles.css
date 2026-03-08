@@ -316,6 +316,31 @@
 	width: 100%;
 }
 
+@media (max-width: 600px) {
+  .container {
+    width: 95%;
+    height: auto;
+    min-height: var(--max-height);
+  }
+
+  .login__bg-image::before {
+    width: 80%;
+    height: 35%;
+    top: 4%;
+    left: 10%;
+    right: auto;
+  }
+
+  .login__bg-image::after {
+    width: 70%;
+    height: 30%;
+    top: auto;
+    bottom: 4%;
+    left: 10%;
+    right: auto;
+  }
+}
+
 @keyframes show {
 	0%,
 	49.99% {

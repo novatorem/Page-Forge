@@ -3,13 +3,11 @@ import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import TextField from "@mui/material/TextField";
+import CircularProgress from "@mui/material/CircularProgress";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
-
-import { ThemeProvider } from "@mui/material/styles";
-import theme from "../../theme";
 
 import { setState } from "../../store";
 import { deleteUserCover } from "../../actions/cover";
@@ -43,11 +41,11 @@ function PaperComponent(props) {
   return <Paper ref={paperRef} onPointerDown={handlePointerDown} {...props} />;
 }
 
-
 export default function Delete(props) {
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [helperText, setHelperText] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const handleChange = event => {
     setValue(event.target.value);
@@ -57,59 +55,61 @@ export default function Delete(props) {
     setState("deleteC", false);
   };
 
-  const handleDelete = () => {
-    if (value === props.title) {
-      deleteUserCover();
-      handleClose();
-    } else {
+  const handleDelete = async () => {
+    if (value !== props.title) {
       setError(true);
       setHelperText("Incorrect Title");
+      return;
     }
+    setDeleting(true);
+    await deleteUserCover();
+    handleClose();
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <Dialog
-        open={true}
-        onClose={handleClose}
-        PaperComponent={PaperComponent}
-        aria-labelledby="delete-dialog-title"
-      >
-        <DialogTitle id="delete-dialog-title" style={{ cursor: "move" }}>
-          Delete Page
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            To delete, please re-enter the title of the page you'd like
-            to delete ({props.title}).
-          </DialogContentText>
-          <TextField
-            autoFocus
-            error={error}
-            margin="dense"
-            id="title"
-            label="Page Title"
-            helperText={helperText}
-            type="title"
-            fullWidth
-            value={value}
-            onChange={handleChange}
-            onKeyDown={e => {
-              if (e.key === 'Enter') {
-                handleDelete();
-              }
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button autoFocus onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleDelete} color="secondary">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </ThemeProvider>
+    <Dialog
+      open={true}
+      onClose={handleClose}
+      PaperComponent={PaperComponent}
+      aria-labelledby="delete-dialog-title"
+    >
+      <DialogTitle id="delete-dialog-title" style={{ cursor: "move" }}>
+        Delete Page
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          To delete, please re-enter the title of the page you'd like
+          to delete ({props.title}).
+        </DialogContentText>
+        <TextField
+          autoFocus
+          error={error}
+          margin="dense"
+          id="title"
+          label="Page Title"
+          helperText={helperText}
+          type="title"
+          fullWidth
+          value={value}
+          onChange={handleChange}
+          onKeyDown={e => {
+            if (e.key === "Enter") handleDelete();
+          }}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button autoFocus onClick={handleClose} disabled={deleting}>
+          Cancel
+        </Button>
+        <Button
+          onClick={handleDelete}
+          color="secondary"
+          disabled={deleting}
+          startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : null}
+        >
+          {deleting ? "Deleting..." : "Delete"}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

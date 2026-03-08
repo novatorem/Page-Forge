@@ -1,4 +1,3 @@
-import React from "react";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import Button from "@mui/material/Button";
@@ -13,9 +12,6 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import TableContainer from "@mui/material/TableContainer";
 import DialogContentText from "@mui/material/DialogContentText";
-import { ThemeProvider } from "@mui/material/styles";
-import theme from "../../theme";
-
 import { setState } from "../../store";
 
 function createData(name, text, symbol, comment) {
@@ -23,25 +19,13 @@ function createData(name, text, symbol, comment) {
 }
 
 const rows = [
-  createData("Input", "{_}", "_____", "Creates an input field"),
-  createData(
-    "Selector",
-    "{.../.../...}",
-    "__ ↓",
-    "Allows you to select from any number of text"
-  ),
-  createData(
-    "Paragraph Data",
-    "{Title|Paragraph Text}",
-    "",
-    "Fills paragraph data to be picked by a field"
-  ),
-  createData(
-    "Paragraph Field",
-    "{*}",
-    "☰",
-    "Creates a paragraph selector to choose a set of data"
-  )
+  createData("Input", "{_}", "_____", "Creates a text input field"),
+  createData("Selector", "{.../.../...}", "__ ↓", "Dropdown to select from any number of options"),
+  createData("Date", "{date}", "📅", "Date picker, pre-filled with today's date"),
+  createData("Number", "{#}", "0 ↕", "Numeric input field"),
+  createData("Optional", "{?:text}", "☐ text", "Checkbox that includes or omits the text"),
+  createData("Paragraph Data", "{Title|Paragraph Text}", "", "Defines a paragraph block to be picked by a selector"),
+  createData("Paragraph Field", "{*}", "☰", "Creates a paragraph selector to choose a defined block")
 ];
 
 export default function Info(props) {
@@ -50,7 +34,6 @@ export default function Info(props) {
   };
 
   return (
-    <ThemeProvider theme={theme}>
       <Dialog fullWidth={true} maxWidth="lg" open={true} onClose={handleClose}>
         <DialogTitle id="max-width-dialog-title">Page Forge</DialogTitle>
         <Divider />
@@ -96,6 +79,5 @@ export default function Info(props) {
           </Button>
         </DialogActions>
       </Dialog>
-    </ThemeProvider>
   );
 }

@@ -14,25 +14,23 @@ import "./styles.css";
 export default function Cover() {
   const {
     cover,
-    coverShort,
+    coverError,
     coverSuccess,
     userCovers,
     info,
     deleteC,
     saveSuccess,
-    introCover,
     currentUser,
     deleteSuccess
   } = useAppStore(
     useShallow(state => ({
       cover: state.cover,
-      coverShort: state.coverShort,
+      coverError: state.coverError,
       coverSuccess: state.coverSuccess,
       userCovers: state.userCovers,
       info: state.info,
       deleteC: state.deleteC,
       saveSuccess: state.saveSuccess,
-      introCover: state.introCover,
       currentUser: state.currentUser,
       deleteSuccess: state.deleteSuccess
     }))
@@ -41,23 +39,19 @@ export default function Cover() {
   return (
     <Fragment>
       <Container className="cover" maxWidth={false} disableGutters={true}>
-        <VerticalDrawer userCovers={userCovers} introCover={introCover} />
+        <VerticalDrawer userCovers={userCovers} />
       </Container>
 
-      {coverShort === true && (
-        <Snackbar
-          severity="warning"
-          message="Title length has to be between 1 and 12 characters"
-        />
+      {coverError && (
+        <Snackbar severity="error" message={coverError} />
       )}
 
       {coverSuccess === true && (
-        <Snackbar severity="success" message="Succesfully created!" />
+        <Snackbar severity="success" message="Successfully created!" />
       )}
       {saveSuccess === true && (
         <Snackbar severity="success" message="Saved" />
       )}
-
       {deleteSuccess === true && (
         <Snackbar severity="success" message="Deleted" />
       )}

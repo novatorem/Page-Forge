@@ -1,4 +1,3 @@
-/* Cover mongoose model */
 const mongoose = require("mongoose");
 
 const Cover = mongoose.model("Cover", {
@@ -6,7 +5,7 @@ const Cover = mongoose.model("Cover", {
     type: String,
     required: true,
     minlength: 1,
-    maxlength: 12
+    maxlength: 200
   },
   data: {
     type: String

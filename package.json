@@ -20,6 +20,7 @@
         "bcryptjs": "^3.0.0",
         "dotenv": "^17.3.1",
         "express": "^5.0.0",
+        "express-rate-limit": "^7.0.0",
         "express-session": "^1.18.0",
         "mongoose": "^9.0.0"
     },

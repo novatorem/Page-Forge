@@ -1,28 +1,20 @@
-// getState is used to get the value of a state path
-// setState is used to set the value of a state path
 import { getState, setState } from "../store";
 import { setEmptyState, autoHide } from "./helpers";
-import { getUserCovers, defaultCover } from "./cover";
+import { getUserCovers } from "./cover";
 
 export const readCookie = () => {
-  const url = "/users/check-session";
-
-  fetch(url)
+  fetch("/users/check-session")
     .then(res => {
-      if (res.status === 200) {
-        return res.json();
-      }
+      if (res.status === 200) return res.json();
     })
     .then(json => {
-      if (json && json.currentUser) {
+      if (json?.currentUser) {
         setState("currentUser", json.currentUser);
         setState("userID", json.userID);
         getUserCovers();
       }
     })
-    .catch(error => {
-      console.log(error);
-    });
+    .catch(() => {});
 };
 
 export const updateLoginForm = field => {
@@ -33,7 +25,6 @@ export const updateLoginForm = field => {
 export const login = () => {
   setState("loginClick", true);
 
-  // Create our request constructor with all the parameters we need
   const request = new Request("/users/login", {
     method: "post",
     body: JSON.stringify(getState("loginForm")),
@@ -42,7 +33,6 @@ export const login = () => {
       "Content-Type": "application/json"
     }
   });
-  // Send the request with fetch()
   fetch(request)
     .then(res => {
       if (res.status === 200) {
@@ -50,7 +40,6 @@ export const login = () => {
       } else {
         setState("failedLogin", true);
         autoHide("failedLogin");
-
         setState("loginClick", false);
       }
     })
@@ -59,7 +48,6 @@ export const login = () => {
         setState("userID", json.userID);
         setState("currentUser", json.currentUser);
         getUserCovers();
-        
         setState("loginClick", false);
       }
     })
@@ -68,14 +56,12 @@ export const login = () => {
         setState("loginError", true);
         autoHide("loginError");
       }
-
       setState("loginClick", false);
       console.log(error);
     });
 };
 
 export const register = event => {
-  // Create our request constructor with all the parameters we need
   const request = new Request("/users/register", {
     method: "post",
     body: JSON.stringify(getState("loginForm")),
@@ -85,7 +71,6 @@ export const register = event => {
     }
   });
 
-  // Send the request with fetch()
   fetch(request)
     .then(res => {
       if (res.status === 200) {
@@ -94,18 +79,13 @@ export const register = event => {
     })
     .then(json => {
       if (json !== undefined) {
-        // Successful registration
-        // Create the sample page
-        defaultCover(json._id);
         setState("registered", true);
         autoHide("registered");
         login();
       } else if (getState("loginForm").password.length < 6) {
-        // Short password
         setState("passwordShort", true);
         autoHide("passwordShort");
       } else {
-        // Invalid username
         setState("invalidUsername", true);
         autoHide("invalidUsername");
       }
@@ -116,10 +96,10 @@ export const register = event => {
 };
 
 export const logout = () => {
-  const url = "/users/logout";
-
-  fetch(url)
-    .then(res => {
+  fetch("/users/logout")
+    .then(() => {
+      document.title = "Page Forge";
+      window.history.replaceState({}, "", "/dashboard");
       setEmptyState();
     })
     .catch(error => {
