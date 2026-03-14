@@ -36,12 +36,12 @@ import ExitToAppRoundedIcon from "@mui/icons-material/ExitToAppRounded";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Page from "./page";
-import NewCover from "./new";
+import NewPage from "./new";
 import EmptyState from "../Shared/EmptyState";
 import ErrorBoundary from "../Shared/ErrorBoundary";
 import { setState, getState, useAppStore } from "../../store";
 import { logout } from "../../actions/user";
-import { saveUserCover, renameUserCover, duplicateUserCover, getUserCovers } from "../../actions/cover";
+import { saveUserPage, renameUserPage, duplicateUserPage, getUserPages } from "../../actions/page";
 
 const drawerWidth = 175;
 
@@ -89,7 +89,7 @@ const Main = styled("main", {
       duration: theme.transitions.duration.leavingScreen
     }),
     marginLeft: `-${drawerWidth}px`,
-    height: "100%",
+    overflowY: "auto",
     background: "var(--bg-base)",
     ...(open && {
       transition: theme.transitions.create("margin", {
@@ -101,13 +101,13 @@ const Main = styled("main", {
   };
 });
 
-function SortableCoverItem({ userCover, selectedCoverId, onClick }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: userCover._id });
+function SortablePageItem({ userPage, selectedPageId, onClick }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: userPage._id });
   return (
     <ListItemButton
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }}
-      selected={selectedCoverId === userCover._id}
+      selected={selectedPageId === userPage._id}
       onClick={onClick}
       {...attributes}
     >
@@ -116,7 +116,7 @@ function SortableCoverItem({ userCover, selectedCoverId, onClick }) {
         sx={{ mr: 0.5, color: "text.secondary", cursor: "grab", flexShrink: 0 }}
         {...listeners}
       />
-      <ListItemText primary={userCover.title} />
+      <ListItemText primary={userPage.title} />
     </ListItemButton>
   );
 }
@@ -125,10 +125,10 @@ function orderKey(userId) {
   return `pageforge-order-${userId}`;
 }
 
-function applyStoredOrder(covers, userId) {
+function applyStoredOrder(pages, userId) {
   const saved = JSON.parse(localStorage.getItem(orderKey(userId)) || "[]");
-  if (saved.length === 0) return covers;
-  return [...covers].sort((a, b) => {
+  if (saved.length === 0) return pages;
+  return [...pages].sort((a, b) => {
     const aIndex = saved.indexOf(a._id);
     const bIndex = saved.indexOf(b._id);
     if (aIndex === -1) return 1;
@@ -139,22 +139,22 @@ function applyStoredOrder(covers, userId) {
 
 export default function VerticalDrawer(props) {
   const navigate = useNavigate();
-  const { coverId: routeCoverId } = useParams();
+  const { pageId: routePageId } = useParams();
   const deleteSuccess = useAppStore(s => s.deleteSuccess);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const defaultContent = <EmptyState userCovers={props.userCovers} />;
+  const defaultContent = <EmptyState userPages={props.userPages} />;
 
   const [open, setOpen] = useState(() => window.innerWidth >= 600);
-  const [cover, setCover] = useState(null);
+  const [page, setPage] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [content, setContent] = useState(defaultContent);
   const [title, setTitle] = useState("Welcome to Page Forge!");
   const [editingTitle, setEditingTitle] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCoverId, setSelectedCoverId] = useState(null);
-  const [orderedCovers, setOrderedCovers] = useState([]);
+  const [selectedPageId, setSelectedPageId] = useState(null);
+  const [orderedPages, setOrderedPages] = useState([]);
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
   const [duplicateName, setDuplicateName] = useState("");
 
@@ -167,25 +167,25 @@ export default function VerticalDrawer(props) {
   }, [isMobile]);
 
   useEffect(() => {
-    if (!props.userCovers) return;
-    setOrderedCovers(applyStoredOrder(props.userCovers, getState("userID")));
-  }, [props.userCovers]);
+    if (!props.userPages) return;
+    setOrderedPages(applyStoredOrder(props.userPages, getState("userID")));
+  }, [props.userPages]);
 
   useEffect(() => {
-    if (!routeCoverId || !props.userCovers) return;
-    const found = props.userCovers.find(c => c._id === routeCoverId);
+    if (!routePageId || !props.userPages) return;
+    const found = props.userPages.find(c => c._id === routePageId);
     if (found) {
-      setCover(found);
+      setPage(found);
       setTitle(found.title);
-      setState("cover", found);
-      setContent(<Page cover={found} />);
-      setSelectedCoverId(found._id);
+      setState("page", found);
+      setContent(<Page page={found} />);
+      setSelectedPageId(found._id);
     }
-  }, [routeCoverId, props.userCovers]);
+  }, [routePageId, props.userPages]);
 
   useEffect(() => {
-    document.title = cover ? `${cover.title} | Page Forge` : "Page Forge";
-  }, [cover]);
+    document.title = page ? `${page.title} | Page Forge` : "Page Forge";
+  }, [page]);
 
   useEffect(() => {
     if (deleteSuccess) resetContent();
@@ -194,10 +194,10 @@ export default function VerticalDrawer(props) {
   const handleDragEnd = event => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    setOrderedCovers(covers => {
-      const oldIndex = covers.findIndex(c => c._id === active.id);
-      const newIndex = covers.findIndex(c => c._id === over.id);
-      const reordered = arrayMove(covers, oldIndex, newIndex);
+    setOrderedPages(pages => {
+      const oldIndex = pages.findIndex(c => c._id === active.id);
+      const newIndex = pages.findIndex(c => c._id === over.id);
+      const reordered = arrayMove(pages, oldIndex, newIndex);
       localStorage.setItem(orderKey(getState("userID")), JSON.stringify(reordered.map(c => c._id)));
       return reordered;
     });
@@ -213,29 +213,29 @@ export default function VerticalDrawer(props) {
     setState("info", true);
   };
 
-  const saveCover = () => saveUserCover();
-  const deleteCover = () => setState("deleteC", true);
+  const savePage = () => saveUserPage();
+  const deletePage = () => setState("deleteC", true);
 
   const openDuplicateDialog = () => {
     menuClose();
-    setDuplicateName(cover.title + " (copy)");
+    setDuplicateName(page.title + " (copy)");
     setDuplicateDialogOpen(true);
   };
 
   const handleDuplicateConfirm = () => {
     const name = duplicateName.trim();
     if (!name) return;
-    duplicateUserCover({ ...cover, title: name });
+    duplicateUserPage({ ...page, title: name });
     setDuplicateDialogOpen(false);
   };
 
   const handleTitleBlur = event => {
     const newTitle = event.target.value.trim();
     setEditingTitle(false);
-    if (newTitle && newTitle !== cover.title) {
-      renameUserCover(cover._id, newTitle).then(() => getUserCovers());
+    if (newTitle && newTitle !== page.title) {
+      renameUserPage(page._id, newTitle).then(() => getUserPages());
       setTitle(newTitle);
-      setCover(c => ({ ...c, title: newTitle }));
+      setPage(c => ({ ...c, title: newTitle }));
     }
   };
 
@@ -245,16 +245,16 @@ export default function VerticalDrawer(props) {
   };
 
   const resetContent = () => {
-    setCover(null);
-    setState("cover", null);
-    setContent(<EmptyState userCovers={props.userCovers} />);
+    setPage(null);
+    setState("page", null);
+    setContent(<EmptyState userPages={props.userPages} />);
     setTitle("Welcome to Page Forge!");
     setEditingTitle(false);
-    setSelectedCoverId(null);
+    setSelectedPageId(null);
     navigate("/dashboard");
   };
 
-  const filteredCovers = orderedCovers.filter(c =>
+  const filteredPages = orderedPages.filter(c =>
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -271,7 +271,7 @@ export default function VerticalDrawer(props) {
           >
             <MenuIcon />
           </IconButton>
-          {cover && editingTitle ? (
+          {page && editingTitle ? (
             <TextField
               variant="standard"
               defaultValue={title}
@@ -286,15 +286,19 @@ export default function VerticalDrawer(props) {
               variant="h6"
               noWrap
               align="left"
-              sx={{ flex: 1, cursor: cover ? "text" : "default" }}
-              onClick={() => { if (cover) setEditingTitle(true); }}
+              sx={{ flex: 1, cursor: page ? "text" : "default" }}
+              onClick={() => { if (page) setEditingTitle(true); }}
+              onKeyDown={e => { if (page && (e.key === "Enter" || e.key === " ")) setEditingTitle(true); }}
+              tabIndex={page ? 0 : undefined}
+              role={page ? "button" : undefined}
+              aria-label={page ? `Rename page: ${title}` : undefined}
             >
               {title}
             </Typography>
           )}
 
-          {cover ? (
-            <IconButton aria-label="save" onClick={saveCover}>
+          {page ? (
+            <IconButton aria-label="save" onClick={savePage}>
               <SaveIcon />
             </IconButton>
           ) : null}
@@ -321,7 +325,7 @@ export default function VerticalDrawer(props) {
               <Typography>Info</Typography>
             </MenuItem>
 
-            {cover ? (
+            {page ? (
               <MenuItem onClick={openDuplicateDialog}>
                 <ListItemIcon>
                   <FileCopyIcon fontSize="small" />
@@ -330,8 +334,8 @@ export default function VerticalDrawer(props) {
               </MenuItem>
             ) : null}
 
-            {cover ? (
-              <MenuItem onClick={deleteCover}>
+            {page ? (
+              <MenuItem onClick={deletePage}>
                 <ListItemIcon>
                   <DeleteIcon fontSize="small" />
                 </ListItemIcon>
@@ -339,6 +343,7 @@ export default function VerticalDrawer(props) {
               </MenuItem>
             ) : null}
 
+            <Divider />
             <MenuItem onClick={logout}>
               <ListItemIcon>
                 <ExitToAppRoundedIcon fontSize="small" />
@@ -391,7 +396,7 @@ export default function VerticalDrawer(props) {
           <Button onClick={resetContent} sx={{ textTransform: "none" }}>
             Page Forge
           </Button>
-          <IconButton onClick={handleDrawerClose}>
+          <IconButton onClick={handleDrawerClose} aria-label="Close drawer">
             <ChevronLeftIcon />
           </IconButton>
         </DrawerHeader>
@@ -402,6 +407,7 @@ export default function VerticalDrawer(props) {
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           sx={{ mx: 1, my: 1 }}
+          inputProps={{ "aria-label": "Search pages" }}
         />
         <List sx={{ pt: 0 }}>
           <DndContext
@@ -410,21 +416,21 @@ export default function VerticalDrawer(props) {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={filteredCovers.map(c => c._id)}
+              items={filteredPages.map(c => c._id)}
               strategy={verticalListSortingStrategy}
             >
-              {filteredCovers.map(userCover => (
-                <SortableCoverItem
-                  key={userCover._id}
-                  userCover={userCover}
-                  selectedCoverId={selectedCoverId}
+              {filteredPages.map(userPage => (
+                <SortablePageItem
+                  key={userPage._id}
+                  userPage={userPage}
+                  selectedPageId={selectedPageId}
                   onClick={() => {
-                    setCover(userCover);
-                    setTitle(userCover.title);
-                    setState("cover", userCover);
-                    setContent(<Page cover={userCover} />);
-                    setSelectedCoverId(userCover._id);
-                    navigate(`/dashboard/${userCover._id}`);
+                    setPage(userPage);
+                    setTitle(userPage.title);
+                    setState("page", userPage);
+                    setContent(<Page page={userPage} />);
+                    setSelectedPageId(userPage._id);
+                    navigate(`/dashboard/${userPage._id}`);
                     if (isMobile) setOpen(false);
                   }}
                 />
@@ -433,7 +439,7 @@ export default function VerticalDrawer(props) {
           </DndContext>
         </List>
 
-        <NewCover />
+        <NewPage />
       </Drawer>
       <Main open={isMobile ? true : open}>
         <ErrorBoundary>

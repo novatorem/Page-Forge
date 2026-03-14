@@ -167,4 +167,5 @@ node server.js
 MONGODB_URI=<connection-string>
 PORT=3000
 SESSION_SECRET=<long-random-string>
+NODE_ENV=production
 ```

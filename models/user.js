@@ -19,7 +19,7 @@ const UserSchema = new mongoose.Schema({
 		required: true,
 		minlength: 6
 	},
-  covers: {
+  pages: {
     type: [mongoose.Schema.Types.ObjectId]
   }
 })

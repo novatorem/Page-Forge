@@ -20,26 +20,50 @@ const features = [
   { icon: <FormatListBulletedIcon />, label: "{*}", description: "Paragraph picker" }
 ];
 
+const centerBox = {
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 2,
+  px: 4,
+  textAlign: "center"
+};
+
 export default function EmptyState(props) {
   const handleNew = () => {
-    setState("coverTitle", "");
-    setState("newCover", true);
+    setState("pageTitle", "");
+    setState("newPage", true);
   };
 
+  if (props.userPages?.length > 0) {
+    return (
+      <Box sx={centerBox}>
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{ animation: "fade-slide-up 250ms var(--ease-out-quart) both" }}
+        >
+          Select a page from the sidebar to get started.
+        </Typography>
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={handleNew}
+          sx={{ animation: "fade-slide-up 250ms var(--ease-out-quart) 60ms both" }}
+        >
+          New page
+        </Button>
+      </Box>
+    );
+  }
+
+  // New user: full onboarding with feature reference
   return (
-    <Box
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 3,
-        px: 4,
-        textAlign: "center"
-      }}
-    >
-      <Box>
+    <Box sx={{ ...centerBox, gap: 3 }}>
+      <Box sx={{ animation: "fade-slide-up 350ms var(--ease-out-quart) both" }}>
         <Typography variant="h4" fontWeight={700} color="primary">
           Page Forge
         </Typography>
@@ -48,10 +72,10 @@ export default function EmptyState(props) {
         </Typography>
       </Box>
 
-      <Divider sx={{ width: "100%", maxWidth: 480 }} />
+      <Divider sx={{ width: "100%", maxWidth: 480, animation: "fade-slide-up 350ms var(--ease-out-quart) 60ms both" }} />
 
       <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", justifyContent: "center" }}>
-        {features.map(f => (
+        {features.map((f, index) => (
           <Box
             key={f.label}
             sx={{
@@ -62,7 +86,9 @@ export default function EmptyState(props) {
               p: 2,
               borderRadius: 2,
               bgcolor: "background.paper",
-              minWidth: 120
+              minWidth: 120,
+              animation: "scale-in 300ms var(--ease-out-quart) both",
+              animationDelay: `${100 + index * 45}ms`
             }}
           >
             <Box color="primary.main">{f.icon}</Box>
@@ -76,7 +102,7 @@ export default function EmptyState(props) {
         ))}
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", justifyContent: "center" }}>
+      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", justifyContent: "center", animation: "fade-slide-up 350ms var(--ease-out-quart) 380ms both" }}>
         <Button
           variant="contained"
           color="primary"
@@ -93,12 +119,6 @@ export default function EmptyState(props) {
           Syntax guide
         </Button>
       </Box>
-
-      {props.userCovers?.length > 0 && (
-        <Typography variant="caption" color="text.secondary">
-          Select a page from the sidebar to get started.
-        </Typography>
-      )}
     </Box>
   );
 }

@@ -4,6 +4,7 @@ import { ThemeProvider } from "@mui/material/styles";
 
 import MainView from "./MainView";
 import Login from "./react-components/Login";
+import ErrorBoundary from "./react-components/Shared/ErrorBoundary";
 import useAppStore from "./store";
 import theme from "./theme";
 
@@ -29,7 +30,9 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div className="app">{!currentUser ? <Login /> : <MainView />}</div>
+      <ErrorBoundary>
+        <div className="app">{!currentUser ? <Login /> : <MainView />}</div>
+      </ErrorBoundary>
     </ThemeProvider>
   );
 }

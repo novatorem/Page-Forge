@@ -8,14 +8,14 @@ import IconButton from "@mui/material/IconButton";
 import LinearProgress from "@mui/material/LinearProgress";
 import { useShallow } from "zustand/react/shallow";
 
-import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
+import { styled, createTheme, ThemeProvider, alpha } from "@mui/material/styles";
 import baseTheme from "../../theme";
 
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 
-import Page from "../Cover/page";
+import PageEditor from "../Page/page";
 import Password from "./password";
 import Snackbar from "../Shared/snackbar";
 import useAppStore from "../../store";
@@ -65,26 +65,26 @@ const theme = createTheme(baseTheme, {
   components: {
     MuiInput: {
       styleOverrides: {
-        underline: {
-          "&:before":                          { borderBottom: "1px solid #FFFFFF44" },
-          "&:hover:not(.Mui-disabled):before": { borderBottom: "1px solid #FFFFFFAA" },
-          "&:after":                           { borderBottom: "1px solid #FFFFFF44" }
-        }
+        underline: ({ theme }) => ({
+          "&:before":                          { borderBottom: `1px solid ${alpha(theme.palette.text.primary, 0.27)}` },
+          "&:hover:not(.Mui-disabled):before": { borderBottom: `1px solid ${alpha(theme.palette.text.primary, 0.67)}` },
+          "&:after":                           { borderBottom: `1px solid ${alpha(theme.palette.text.primary, 0.27)}` }
+        })
       }
     },
     MuiInputLabel: {
       styleOverrides: {
-        root: {
-          color: "#FFFFFFDC",
-          "&.Mui-focused": { color: "#FFFFFF" }
-        }
+        root: ({ theme }) => ({
+          color: alpha(theme.palette.text.primary, 0.86),
+          "&.Mui-focused": { color: theme.palette.text.primary }
+        })
       }
     },
     MuiInputBase: {
-      styleOverrides: { root: { color: "#FFFFFFDE" } }
+      styleOverrides: { root: ({ theme }) => ({ color: alpha(theme.palette.text.primary, 0.87) }) }
     },
     MuiIconButton: {
-      styleOverrides: { root: { color: "#FFFFFFDC" } }
+      styleOverrides: { root: ({ theme }) => ({ color: alpha(theme.palette.text.primary, 0.86) }) }
     }
   }
 });
@@ -92,7 +92,7 @@ const theme = createTheme(baseTheme, {
 export default function Login() {
   const [trying, setTrying] = useState(false);
   const [rightPanelActive, setRightPanelActive] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 600px)");
+  const isMobile = useMediaQuery(baseTheme.breakpoints.down("sm"));
 
   const {
     loginClick,
@@ -101,7 +101,7 @@ export default function Login() {
     invalidUsername,
     passwordShort,
     registered,
-    tryCover
+    tryPage
   } = useAppStore(
     useShallow(state => ({
       loginClick: state.loginClick,
@@ -110,7 +110,7 @@ export default function Login() {
       invalidUsername: state.invalidUsername,
       passwordShort: state.passwordShort,
       registered: state.registered,
-      tryCover: state.tryCover
+      tryPage: state.tryPage
     }))
   );
 
@@ -138,7 +138,7 @@ export default function Login() {
                 name="username"
                 label="Username"
                 variant="standard"
-                className="login__input app__input app__horizontal-center"
+                className="login__input app__horizontal-center"
                 margin="none"
                 autoFocus
                 onChange={e => updateLoginForm(e.target)}
@@ -163,7 +163,7 @@ export default function Login() {
             <MUIDialogTitle onClose={handleClose}>Try Me</MUIDialogTitle>
             <Divider />
             <MUIDialogContent dividers={false}>
-              {tryCover && <Page cover={tryCover} />}
+              {tryPage && <PageEditor page={tryPage} />}
             </MUIDialogContent>
           </Dialog>
 
@@ -193,7 +193,7 @@ export default function Login() {
                 name="username"
                 label="Username"
                 variant="standard"
-                className="login__input app__input app__horizontal-center"
+                className="login__input app__horizontal-center"
                 margin="none"
                 autoFocus={true}
                 onChange={e => updateLoginForm(e.target)}
@@ -220,7 +220,7 @@ export default function Login() {
                 name="username"
                 label="Username"
                 variant="standard"
-                className="login__input app__input app__horizontal-center"
+                className="login__input app__horizontal-center"
                 margin="none"
                 autoFocus={true}
                 onChange={e => updateLoginForm(e.target)}
@@ -280,7 +280,7 @@ export default function Login() {
           <MUIDialogTitle onClose={handleClose}>Try Me</MUIDialogTitle>
           <Divider />
           <MUIDialogContent dividers={false}>
-            {tryCover && <Page cover={tryCover} />}
+            {tryPage && <PageEditor page={tryPage} />}
           </MUIDialogContent>
         </Dialog>
 

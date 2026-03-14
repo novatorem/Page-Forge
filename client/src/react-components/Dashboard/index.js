@@ -1,11 +1,11 @@
 import "./styles.css";
 
-import Cover from "./../Cover";
+import PageDashboard from "./../Page";
 
 export default function Dashboard() {
   return (
-    <div className="App center">
-      <Cover />
+    <div className="App">
+      <PageDashboard />
     </div>
   );
 }

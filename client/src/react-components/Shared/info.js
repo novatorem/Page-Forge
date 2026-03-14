@@ -12,6 +12,8 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import TableContainer from "@mui/material/TableContainer";
 import DialogContentText from "@mui/material/DialogContentText";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 import { setState } from "../../store";
 
 function createData(name, text, symbol, comment) {
@@ -29,12 +31,15 @@ const rows = [
 ];
 
 export default function Info(props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const handleClose = () => {
     setState("info", false);
   };
 
   return (
-      <Dialog fullWidth={true} maxWidth="lg" open={true} onClose={handleClose}>
+      <Dialog fullWidth={true} maxWidth="lg" fullScreen={isMobile} open={true} onClose={handleClose}>
         <DialogTitle id="max-width-dialog-title">Page Forge</DialogTitle>
         <Divider />
         <DialogContent>

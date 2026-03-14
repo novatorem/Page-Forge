@@ -1,8 +1,8 @@
 import { getState, setState } from "../store";
 import { autoHide } from "./helpers";
 
-export const newCover = (title, data = "") => {
-  const request = new Request("/covers/new", {
+export const newPage = (title, data = "") => {
+  const request = new Request("/pages/new", {
     method: "POST",
     body: JSON.stringify({
       owner: getState("userID"),
@@ -18,48 +18,48 @@ export const newCover = (title, data = "") => {
   fetch(request)
     .then(async res => {
       if (res.status === 200) {
-        setState("coverSuccess", true);
-        autoHide("coverSuccess");
-        getUserCovers();
+        setState("pageSuccess", true);
+        autoHide("pageSuccess");
+        getUserPages();
       } else {
         const body = await res.json().catch(() => ({}));
-        setState("coverError", body.error || "Failed to create page.");
-        autoHide("coverError");
+        setState("pageError", body.error || "Failed to create page.");
+        autoHide("pageError");
       }
     })
     .catch(error => {
-      console.log(error);
-      setState("coverError", "Failed to create page.");
-      autoHide("coverError");
+      console.error(error);
+      setState("pageError", "Failed to create page.");
+      autoHide("pageError");
     });
 };
 
-export const getUserCovers = () => {
-  const url = "/covers/" + getState("userID");
+export const getUserPages = () => {
+  const url = "/pages/" + getState("userID");
 
   fetch(url)
     .then(res => {
       if (res.status === 200) {
         return res.json();
       } else {
-        console.error("Failed to load covers:", res.status);
+        console.error("Failed to load pages:", res.status);
       }
     })
     .then(json => {
-      setState("userCovers", json);
+      setState("userPages", json);
     })
     .catch(error => {
-      console.log(error);
+      console.error(error);
     });
 };
 
-export const saveUserCover = (silent = false) => {
-  const cover = getState("cover");
-  const url = "/covers/" + cover._id;
+export const saveUserPage = (silent = false) => {
+  const page = getState("page");
+  const url = "/pages/" + page._id;
 
   const request = new Request(url, {
     method: "PATCH",
-    body: JSON.stringify({ data: cover.data }),
+    body: JSON.stringify({ data: page.data }),
     headers: {
       Accept: "application/json, text/plain, */*",
       "Content-Type": "application/json"
@@ -75,21 +75,21 @@ export const saveUserCover = (silent = false) => {
         }
         return res.json();
       } else {
-        console.log(res);
+        console.error("Save failed:", res.status);
       }
     })
     .catch(error => {
-      console.log(error);
+      console.error(error);
     });
 };
 
-export const duplicateUserCover = cover => {
-  return fetch("/covers/new", {
+export const duplicateUserPage = page => {
+  return fetch("/pages/new", {
     method: "POST",
     body: JSON.stringify({
-      owner: cover.owner,
-      title: cover.title,
-      data: cover.data
+      owner: page.owner,
+      title: page.title,
+      data: page.data
     }),
     headers: {
       Accept: "application/json, text/plain, */*",
@@ -98,34 +98,34 @@ export const duplicateUserCover = cover => {
   })
     .then(async res => {
       if (res.status === 200) {
-        getUserCovers();
+        getUserPages();
       } else {
         const body = await res.json().catch(() => ({}));
-        setState("coverError", body.error || "Failed to duplicate page.");
-        autoHide("coverError");
+        setState("pageError", body.error || "Failed to duplicate page.");
+        autoHide("pageError");
       }
     })
-    .catch(error => console.log(error));
+    .catch(error => console.error(error));
 };
 
-export const renameUserCover = (coverId, newTitle) => {
-  return fetch(`/covers/${coverId}`, {
+export const renameUserPage = (pageId, newTitle) => {
+  return fetch(`/pages/${pageId}`, {
     method: "PATCH",
     body: JSON.stringify({ title: newTitle }),
     headers: {
       Accept: "application/json, text/plain, */*",
       "Content-Type": "application/json"
     }
-  }).catch(error => console.log(error));
+  }).catch(error => console.error(error));
 };
 
-export const deleteUserCover = () => {
-  const cover = getState("cover");
-  const url = "/covers/" + cover._id;
+export const deleteUserPage = () => {
+  const page = getState("page");
+  const url = "/pages/" + page._id;
 
   const request = new Request(url, {
     method: "DELETE",
-    body: JSON.stringify({ data: cover.data }),
+    body: JSON.stringify({ data: page.data }),
     headers: {
       Accept: "application/json, text/plain, */*",
       "Content-Type": "application/json"
@@ -137,14 +137,13 @@ export const deleteUserCover = () => {
       if (res.status === 200) {
         setState("deleteSuccess", true);
         autoHide("deleteSuccess");
-        getUserCovers();
+        getUserPages();
         return res.json();
       } else {
-        console.log(res);
+        console.error("Delete failed:", res.status);
       }
     })
     .catch(error => {
-      console.log(error);
+      console.error(error);
     });
 };
-
