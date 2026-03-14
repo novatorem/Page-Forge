@@ -1,4 +1,4 @@
-.cover {
+.page {
   height: inherit;
   width: inherit;
   margin: 0;
@@ -6,8 +6,8 @@
   background-color: var(--bg-surface);
 }
 
-.newCover {
+.newPage {
   position: fixed;
-  bottom: 10px;
-  left: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  left: calc(10px + env(safe-area-inset-left));
 }

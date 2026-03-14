@@ -1,5 +1,9 @@
 :root {
   --spacing-edge: 11px;
+
+  /* Animation easing tokens */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html {
@@ -18,26 +22,49 @@ body {
   display: none;
 }
 
-h1,
-h2,
-h3,
-p {
-  text-align: center;
-}
 
 #root {
+  height: 100%;
   background-color: var(--bg-base);
 }
 
 .app {
+  height: 100%;
   background-color: var(--bg-base);
 }
 
+/* ─── Keyframes ─────────────────────────────────────────────────────────── */
 
-.MuiTextField-root.app__horizontal-center,
-.MuiButton-root.app__horizontal-center {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+@keyframes fade-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ─── Global reduced-motion override ────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 

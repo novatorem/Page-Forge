@@ -9,8 +9,8 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 
-import { setState } from "../../store";
-import { deleteUserCover } from "../../actions/cover";
+import { getState, setState } from "../../store";
+import { deleteUserPage } from "../../actions/page";
 
 function PaperComponent(props) {
   const paperRef = useRef(null);
@@ -22,15 +22,20 @@ function PaperComponent(props) {
     drag.current.startX = e.clientX - drag.current.posX;
     drag.current.startY = e.clientY - drag.current.posY;
 
+    let raf = null;
     const onMove = e => {
       drag.current.posX = e.clientX - drag.current.startX;
       drag.current.posY = e.clientY - drag.current.startY;
-      if (paperRef.current) {
-        paperRef.current.style.transform =
-          `translate(${drag.current.posX}px, ${drag.current.posY}px)`;
-      }
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        if (paperRef.current) {
+          paperRef.current.style.transform =
+            `translate(${drag.current.posX}px, ${drag.current.posY}px)`;
+        }
+      });
     };
     const onUp = () => {
+      if (raf) cancelAnimationFrame(raf);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
     };
@@ -41,7 +46,8 @@ function PaperComponent(props) {
   return <Paper ref={paperRef} onPointerDown={handlePointerDown} {...props} />;
 }
 
-export default function Delete(props) {
+export default function Delete() {
+  const title = getState("page")?.title ?? "";
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [helperText, setHelperText] = useState("");
@@ -56,13 +62,13 @@ export default function Delete(props) {
   };
 
   const handleDelete = async () => {
-    if (value !== props.title) {
+    if (value !== title) {
       setError(true);
       setHelperText("Incorrect Title");
       return;
     }
     setDeleting(true);
-    await deleteUserCover();
+    await deleteUserPage();
     handleClose();
   };
 
@@ -79,7 +85,7 @@ export default function Delete(props) {
       <DialogContent>
         <DialogContentText>
           To delete, please re-enter the title of the page you'd like
-          to delete ({props.title}).
+          to delete ({title}).
         </DialogContentText>
         <TextField
           autoFocus

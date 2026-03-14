@@ -1,34 +1,36 @@
 import { setState } from "../store";
+import useAppStore from "../store";
 
 export const autoHide = (key, ms = 3250) => {
   setTimeout(() => setState(key, false), ms);
 };
 
 export const setEmptyState = () => {
-  setState("currentUser", null);
-  setState("loginForm", { username: "", password: "" });
-  setState("userID", null);
+  useAppStore.setState({
+    currentUser: null,
+    loginForm: { username: "", password: "" },
+    userID: null,
 
-  setState("loginClick", false);
-  setState("loginError", false);
-  setState("failedLogin", false);
-  setState("registered", false);
-  setState("passwordShort", false);
-  setState("invalidUsername", false);
+    loginClick: false,
+    loginError: false,
+    failedLogin: false,
+    registered: false,
+    passwordShort: false,
+    invalidUsername: false,
 
-  setState("coverTitle", null);
-  setState("coverShort", false);
-  setState("coverSuccess", false);
+    pageTitle: null,
+    pageShort: false,
+    pageSuccess: false,
 
-  setState("cover", null);
-  setState("info", false);
-  setState("deleteC", false);
-  setState("userCovers", null);
-  setState("saveSuccess", false);
-  setState("deleteSuccess", false);
+    page: null,
+    info: false,
+    deleteC: false,
+    userPages: null,
+    saveSuccess: false,
+    deleteSuccess: false,
 
-  setState("tryCover", {
-    data: `Hello, and welcome to Page Forge! Write your template on the left - the interactive version appears on the right. Fill in the fields, then copy or print the result.
+    tryPage: {
+      data: `Hello, and welcome to Page Forge! Write your template on the left - the interactive version appears on the right. Fill in the fields, then copy or print the result.
 
 Text inputs use {_}, like: Hello {_},
 
@@ -44,5 +46,6 @@ Paragraph selectors use {*} to pick from named blocks defined at the end of the 
 
 {Strong Closer|I can be sure that this will save you a lot of time and effort.}
 {Brief Closer|Thank you for your time and consideration. I look forward to hearing from you.}`
+    }
   });
 };

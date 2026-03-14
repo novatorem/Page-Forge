@@ -12,8 +12,9 @@ export default function Input({ label, value, onChange, name }) {
         name={name}
         label={label}
         defaultValue={value}
-        className="input app__input"
+        className="input"
         margin="normal"
+        fullWidth
         onChange={onChange}
       />
     </Grid>

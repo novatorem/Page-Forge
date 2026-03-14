@@ -2,13 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { styled, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
-import Tooltip from "@mui/material/Tooltip";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
@@ -17,30 +15,25 @@ import PrintIcon from "@mui/icons-material/Print";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import SubjectIcon from "@mui/icons-material/Subject";
-import FormatClearIcon from "@mui/icons-material/FormatClear";
 
 import Parse from "../Parse";
 import dimensions from "../Shared/dimensions";
 import { setState } from "../../store";
-import { saveUserCover } from "../../actions/cover";
+import { saveUserPage } from "../../actions/page";
 
 const AUTOSAVE_DELAY = 1500;
 const UNDO_COMMIT_DELAY = 500;
 
-const MUIGrid = styled(Grid)({
-  height: "100%",
-  position: "relative"
-});
-
 const MUITextField = styled(TextField)({
+  marginTop: "16px",
   flex: 1,
   minHeight: 0,
-  marginTop: "16px",
+  display: "flex",
+  flexDirection: "column",
   "& .MuiInputBase-root": {
-    height: "100%",
     alignItems: "flex-start",
-    overflow: "auto"
+    flex: 1,
+    overflowY: "auto",
   },
   "& .MuiOutlinedInput-notchedOutline": {
     border: "none"
@@ -48,22 +41,26 @@ const MUITextField = styled(TextField)({
   "& textarea": {
     outline: "none",
     resize: "none"
+  },
+  "& textarea::placeholder": {
+    opacity: 0.4,
+    fontStyle: "italic",
+    whiteSpace: "pre-line"
   }
 });
 
 export default function Page(props) {
-  const cover = props.cover;
+  const page = props.page;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [data, setData] = useState(cover.data);
+  const [data, setData] = useState(page.data);
   const [visibility, setVisibility] = useState(true);
   const [activePanel, setActivePanel] = useState("true");
-  const [richCopy, setRichCopy] = useState(false);
   const [cIcon, setCIcon] = useState(<FileCopyIcon />);
   const [saveStatus, setSaveStatus] = useState("idle");
   const parseRef = useRef(null);
   const autoSaveTimer = useRef(null);
-  const undoHistory = useRef([cover.data]);
+  const undoHistory = useRef([page.data]);
   const undoIndex = useRef(0);
   const undoCommitTimer = useRef(null);
 
@@ -74,13 +71,13 @@ export default function Page(props) {
   }
 
   useEffect(() => {
-    setData(cover.data);
+    setData(page.data);
     setSaveStatus("idle");
     clearTimeout(autoSaveTimer.current);
     clearTimeout(undoCommitTimer.current);
-    undoHistory.current = [cover.data];
+    undoHistory.current = [page.data];
     undoIndex.current = 0;
-  }, [cover.data]);
+  }, [page.data]);
 
   useEffect(() => {
     return () => {
@@ -95,9 +92,9 @@ export default function Page(props) {
 
       if (event.key === "s") {
         event.preventDefault();
-        if (!cover._id) return;
+        if (!page._id) return;
         clearTimeout(autoSaveTimer.current);
-        saveUserCover();
+        saveUserPage();
         setSaveStatus("idle");
         return;
       }
@@ -117,14 +114,14 @@ export default function Page(props) {
 
       const restoredValue = undoHistory.current[undoIndex.current];
       setData(restoredValue);
-      setState("cover", { _id: cover._id, data: restoredValue });
+      setState("page", { _id: page._id, data: restoredValue });
 
-      if (cover._id) {
+      if (page._id) {
         setSaveStatus("unsaved");
         clearTimeout(autoSaveTimer.current);
         autoSaveTimer.current = setTimeout(async () => {
           setSaveStatus("saving");
-          await saveUserCover(true);
+          await saveUserPage(true);
           setSaveStatus("saved");
           setTimeout(() => setSaveStatus("idle"), 2000);
         }, AUTOSAVE_DELAY);
@@ -133,19 +130,19 @@ export default function Page(props) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cover._id]);
+  }, [page._id]);
 
   const handleChange = event => {
     const value = event.target.value;
     setData(value);
-    setState("cover", { _id: cover._id, data: value });
+    setState("page", { _id: page._id, data: value });
 
-    if (cover._id) {
+    if (page._id) {
       setSaveStatus("unsaved");
       clearTimeout(autoSaveTimer.current);
       autoSaveTimer.current = setTimeout(async () => {
         setSaveStatus("saving");
-        await saveUserCover(true);
+        await saveUserPage(true);
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus("idle"), 2000);
       }, AUTOSAVE_DELAY);
@@ -162,11 +159,7 @@ export default function Page(props) {
   const handleVisibility = () => setVisibility(v => !v);
 
   const handleCopy = () => {
-    if (richCopy) {
-      parseRef.current?.copyRich();
-    } else {
-      parseRef.current?.copy();
-    }
+    parseRef.current?.copy();
     setCIcon(<DoneIcon />);
     setTimeout(() => setCIcon(<FileCopyIcon />), 1250);
   };
@@ -184,18 +177,25 @@ export default function Page(props) {
   const showTrue = isMobile ? activePanel === "true" : true;
 
   const forgePaper = (
-    <Paper sx={{ padding: "16px 20px", height: "100%", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }} elevation={0}>
+    <Paper sx={{ padding: "16px 20px", height: "100%", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column" }} elevation={0}>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {!isMobile && <Typography variant="h6" noWrap>Forge</Typography>}
-          {cover._id && saveStatus !== "idle" && (
-            <Typography variant="caption" color={saveStatus === "saved" ? "success.main" : "text.secondary"}>
+          {page._id && saveStatus !== "idle" && (
+            <Typography
+              key={saveStatus}
+              variant="caption"
+              color={saveStatus === "saved" ? "success.main" : "text.secondary"}
+              aria-live="polite"
+              aria-atomic="true"
+              sx={{ animation: "fade-slide-up 180ms var(--ease-out-quart) both" }}
+            >
               {saveStatusLabel}
             </Typography>
           )}
         </Box>
         {!isMobile && (
-          <IconButton size="small" onClick={handleVisibility} color="primary">
+          <IconButton size="small" onClick={handleVisibility} color="primary" aria-label="Hide editor">
             <VisibilityOffIcon fontSize="small" />
           </IconButton>
         )}
@@ -208,30 +208,26 @@ export default function Page(props) {
         value={data}
         onChange={handleChange}
         autoFocus={!isMobile}
+        placeholder={"Write your template here.\n\nUse {_} for a text field, {date} for a date picker,\n{this/that} for a dropdown, {#} for a number,\nor {?:optional text} to make a line optional."}
         sx={{ marginTop: isMobile ? "8px" : "16px" }}
       />
     </Paper>
   );
 
   const truePaper = (
-    <Paper sx={{ padding: "16px 20px", height: "100%", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }} elevation={0}>
+    <Paper sx={{ padding: "16px 20px", height: "100%", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column" }} elevation={0}>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         {!isMobile && <Typography variant="h6" noWrap>True</Typography>}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: isMobile ? "auto" : 0 }}>
           {!isMobile && !visibility && (
-            <IconButton size="small" onClick={handleVisibility} color="primary">
+            <IconButton size="small" onClick={handleVisibility} color="primary" aria-label="Show editor">
               <VisibilityIcon fontSize="small" />
             </IconButton>
           )}
-          <Tooltip title={richCopy ? "Rich text copy (for email clients)" : "Plain text copy"}>
-            <IconButton size="small" color={richCopy ? "primary" : "default"} onClick={() => setRichCopy(r => !r)}>
-              {richCopy ? <SubjectIcon fontSize="small" /> : <FormatClearIcon fontSize="small" />}
-            </IconButton>
-          </Tooltip>
-          <IconButton size="small" color="primary" onClick={handlePrint}>
+          <IconButton size={isMobile ? "medium" : "small"} color="primary" onClick={handlePrint} aria-label="Print page">
             <PrintIcon fontSize="small" />
           </IconButton>
-          <Button size="small" color="primary" variant="text" startIcon={cIcon} onClick={handleCopy}>
+          <Button size="small" color="primary" variant="text" startIcon={cIcon} onClick={handleCopy} sx={isMobile ? { minHeight: 44, px: 1.5 } : undefined}>
             Copy
           </Button>
         </Box>
@@ -241,33 +237,33 @@ export default function Page(props) {
     </Paper>
   );
 
+  const gridColumns = !isMobile && direction === "row" && showForge && showTrue
+    ? "1fr 1fr" : "1fr";
+
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {isMobile && (
         <Tabs
           value={activePanel}
           onChange={(_, v) => setActivePanel(v)}
-          sx={{ minHeight: 40, mb: 1 }}
+          sx={{ minHeight: 44, mb: 1 }}
           TabIndicatorProps={{ style: { height: 2 } }}
         >
-          <Tab label="Forge" value="forge" sx={{ minHeight: 40, py: 0.5 }} />
-          <Tab label="True" value="true" sx={{ minHeight: 40, py: 0.5 }} />
+          <Tab label="Forge" value="forge" sx={{ minHeight: 44, py: 0.75 }} />
+          <Tab label="True" value="true" sx={{ minHeight: 44, py: 0.75 }} />
         </Tabs>
       )}
-      <MUIGrid
-        container
-        alignItems="stretch"
-        spacing={isMobile ? 0 : 2}
-        direction={isMobile ? "row" : direction}
-        sx={{ flex: 1, minHeight: 0 }}
-      >
-        <MUIGrid size="grow" sx={{ display: showForge ? undefined : "none" }}>
-          {forgePaper}
-        </MUIGrid>
-        <MUIGrid size="grow" sx={{ display: showTrue ? undefined : "none" }}>
-          {truePaper}
-        </MUIGrid>
-      </MUIGrid>
+      <Box sx={{
+        display: "grid",
+        gridTemplateColumns: gridColumns,
+        gridTemplateRows: "1fr",
+        gap: isMobile ? 0 : 2,
+        flex: 1,
+        minHeight: 0
+      }}>
+        {showForge && forgePaper}
+        {showTrue && truePaper}
+      </Box>
     </div>
   );
 }

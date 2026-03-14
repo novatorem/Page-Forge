@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useRef, useEffect, useMemo, forwardRef, useImperativeHandle } from "react";
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Select from "@mui/material/Select";
@@ -23,10 +23,10 @@ import { printText } from "../Shared/printUtils";
 import "./styles.css";
 
 const MUITypography = styled(Typography)({
-  overflow: "auto",
   marginTop: "15px",
   flex: 1,
-  minHeight: 0
+  minHeight: 0,
+  overflowY: "auto",
 });
 
 function OptionalForge({ parts, closureCount, optionalGetters }) {
@@ -99,7 +99,7 @@ const Parse = forwardRef(function Parse(props, ref) {
   const optionalGetters = useRef([]);
   const optionalCount = useRef(-1);
 
-  const CTextField = function() {
+  const PageTextField = function() {
     inputCount.current++;
     inputValues.current.push("");
     const closureCount = inputCount.current;
@@ -114,7 +114,7 @@ const Parse = forwardRef(function Parse(props, ref) {
     );
   };
 
-  const CSelect = function(match) {
+  const PageSelect = function(match) {
     selectCount.current++;
     selectValues.current.push("");
     const closureCount = selectCount.current;
@@ -140,7 +140,7 @@ const Parse = forwardRef(function Parse(props, ref) {
     );
   };
 
-  const CDate = function() {
+  const PageDate = function() {
     dateCount.current++;
     const today = new Date().toISOString().split("T")[0];
     dateValues.current.push(today);
@@ -158,7 +158,7 @@ const Parse = forwardRef(function Parse(props, ref) {
     );
   };
 
-  const CNumber = function() {
+  const PageNumber = function() {
     numberCount.current++;
     numberValues.current.push("0");
     const closureCount = numberCount.current;
@@ -171,7 +171,7 @@ const Parse = forwardRef(function Parse(props, ref) {
     );
   };
 
-  const COptional = function(parts) {
+  const PageOptional = function(parts) {
     optionalCount.current++;
     const closureCount = optionalCount.current;
     return (
@@ -185,7 +185,7 @@ const Parse = forwardRef(function Parse(props, ref) {
     );
   };
 
-  const CParagraph = function() {
+  const PageParagraph = function() {
     paragraphCount.current++;
     const closureCount = paragraphCount.current;
     return (
@@ -208,7 +208,7 @@ const Parse = forwardRef(function Parse(props, ref) {
     let indx = 1;
 
     while ((match = listRegx.exec(element)) !== null) {
-      select.splice(indx, 0, CSelect(match[0]));
+      select.splice(indx, 0, PageSelect(match[0]));
       indx += 2;
     }
 
@@ -219,13 +219,13 @@ const Parse = forwardRef(function Parse(props, ref) {
   const createDates = function(element) {
     if (typeof element !== "string") return element;
     const parts = element.split("{date}");
-    return parts.map((part, i) => (i < parts.length - 1 ? [part, CDate()] : [part])).flat();
+    return parts.map((part, i) => (i < parts.length - 1 ? [part, PageDate()] : [part])).flat();
   };
 
   const createNumbers = function(element) {
     if (typeof element !== "string") return element;
     const parts = element.split("{#}");
-    return parts.map((part, i) => (i < parts.length - 1 ? [part, CNumber()] : [part])).flat();
+    return parts.map((part, i) => (i < parts.length - 1 ? [part, PageNumber()] : [part])).flat();
   };
 
   // Optionals are processed on the raw source string before any other forge type
@@ -238,7 +238,7 @@ const Parse = forwardRef(function Parse(props, ref) {
     let match;
     let indx = 1;
     while ((match = matchRegx.exec(str)) !== null) {
-      parts.splice(indx, 0, COptional(parseForgeContent(match[1])));
+      parts.splice(indx, 0, PageOptional(parseForgeContent(match[1])));
       indx += 2;
     }
     return parts.filter(item => item !== "");
@@ -255,7 +255,7 @@ const Parse = forwardRef(function Parse(props, ref) {
     let indx = 1;
 
     while (listRegx.exec(element) !== null) {
-      paragraph.splice(indx, 0, CParagraph());
+      paragraph.splice(indx, 0, PageParagraph());
       indx += 2;
     }
 
@@ -284,16 +284,14 @@ const Parse = forwardRef(function Parse(props, ref) {
     while ((paraMatch = paraDataRegx.exec(sourceStr)) !== null) {
       paragraphData.current.push(paraMatch);
     }
-    const stripped = sourceStr.replace(paraDataRegx, "");
+    const stripped = sourceStr.replace(paraDataRegx, "").replace(/\n{3,}/g, "\n\n").trimEnd();
 
-    // Optionals second — must run before {_}/{#}/{date}/selectors split the string
     let optionalDone = createOptionals(stripped);
 
-    // Text inputs on remaining string segments
     let inputDone = optionalDone.map(e => {
       if (typeof e !== "string") return e;
       const splits = e.split("{_}");
-      return splits.map((s, i) => i < splits.length - 1 ? [s, CTextField()] : [s]).flat();
+      return splits.map((s, i) => i < splits.length - 1 ? [s, PageTextField()] : [s]).flat();
     }).flat();
 
     let selectDone = inputDone.map(createSelectors).flat();
@@ -304,7 +302,12 @@ const Parse = forwardRef(function Parse(props, ref) {
     return paraDone;
   }
 
-  const data = getAll(props.data);
+  // Memoize parse output: getAll is expensive (regex + element creation) and
+  // only needs to re-run when the template string actually changes.
+  // Internal factory functions (PageTextField, PageSelect…) only write to stable refs,
+  // so returning a cached element array is safe when props.data is unchanged.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const data = useMemo(() => getAll(props.data), [props.data]);
 
   const buildRawList = () => {
     while (inputValues.current[inputValues.current.length - 1] === "") {
@@ -356,27 +359,11 @@ const Parse = forwardRef(function Parse(props, ref) {
     navigator.clipboard.writeText(buildRawList().join("").trim());
   };
 
-  const copyRich = () => {
-    const plainText = buildRawList().join("").trim();
-    const htmlText = plainText
-      .split("\n")
-      .map(line => {
-        const escaped = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        return escaped === "" ? "<br>" : `<p style="margin:0">${escaped}</p>`;
-      })
-      .join("\n");
-    const blob = new Blob([htmlText], { type: "text/html" });
-    const plainBlob = new Blob([plainText], { type: "text/plain" });
-    navigator.clipboard.write([
-      new ClipboardItem({ "text/html": blob, "text/plain": plainBlob })
-    ]);
-  };
-
   const print = () => {
     printText(buildRawList().join("").trim());
   };
 
-  useImperativeHandle(ref, () => ({ copy, copyRich, print }));
+  useImperativeHandle(ref, () => ({ copy, print }));
 
   return (
     <MUITypography component="div" align="left" style={{ whiteSpace: "pre-line" }}>

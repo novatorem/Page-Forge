@@ -8,12 +8,14 @@ const rateLimit = require("express-rate-limit");
 const { mongoose } = require("./db/mongoose");
 
 const { User } = require("./models/user");
-const { Cover } = require("./models/cover");
+const { Page } = require("./models/page");
 
 app.use(express.json());
 
 const session = require("express-session");
 app.use(express.urlencoded({ extended: true }));
+
+app.set("trust proxy", 1);
 
 app.use(
   session({
@@ -45,7 +47,7 @@ const authLimiter = rateLimit({
 
 app.use(generalLimiter);
 
-const MAX_COVER_DATA_BYTES = 100 * 1024;
+const MAX_PAGE_DATA_BYTES = 100 * 1024;
 const MAX_TITLE_LENGTH = 200;
 
 const requireAuth = (req, res, next) => {
@@ -120,42 +122,42 @@ app.post("/users/register", authLimiter, (req, res) => {
   );
 });
 
-app.post("/covers/new", requireAuth, (req, res) => {
+app.post("/pages/new", requireAuth, (req, res) => {
   const { title, data, owner } = req.body;
 
   if (!title || title.length > MAX_TITLE_LENGTH) {
     return res.status(400).send({ error: `Title must be between 1 and ${MAX_TITLE_LENGTH} characters.` });
   }
-  if (data && Buffer.byteLength(data, "utf8") > MAX_COVER_DATA_BYTES) {
-    return res.status(400).send({ error: "Cover content exceeds the 100 KB limit." });
+  if (data && Buffer.byteLength(data, "utf8") > MAX_PAGE_DATA_BYTES) {
+    return res.status(400).send({ error: "Page content exceeds the 100 KB limit." });
   }
 
-  const coverID = new mongoose.Types.ObjectId().toHexString();
+  const pageID = new mongoose.Types.ObjectId().toHexString();
 
-  const cover = new Cover({ _id: coverID, title, data, owner });
+  const page = new Page({ _id: pageID, title, data, owner });
 
-  cover.save().then(
+  page.save().then(
     () => {
       User.findOneAndUpdate(
         { _id: owner },
-        { $push: { covers: coverID } },
+        { $push: { pages: pageID } },
         { upsert: true }
       ).then(
         () => res.status(200).send(title + " created!"),
-        error => res.status(500).send({ error: "Failed to link cover to user." })
+        error => res.status(500).send({ error: "Failed to link page to user." })
       );
     },
     error => handleSaveError(error, res)
   );
 });
 
-app.get("/covers/:id", requireAuth, (req, res) => {
+app.get("/pages/:id", requireAuth, (req, res) => {
   const id = req.params.id;
 
-  Cover.find({ owner: id })
+  Page.find({ owner: id })
     .then(results => {
       if (!results) {
-        res.status(404).send("Failed to get covers");
+        res.status(404).send("Failed to get pages");
       } else {
         res.send(results);
       }
@@ -166,48 +168,48 @@ app.get("/covers/:id", requireAuth, (req, res) => {
     });
 });
 
-app.patch("/covers/:cid", requireAuth, (req, res) => {
-  const cid = req.params.cid;
+app.patch("/pages/:pid", requireAuth, (req, res) => {
+  const pid = req.params.pid;
   const { data, title } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(cid)) {
+  if (!mongoose.Types.ObjectId.isValid(pid)) {
     return res.status(404).send();
   }
   if (title !== undefined && title.length > MAX_TITLE_LENGTH) {
     return res.status(400).send({ error: `Title must be ${MAX_TITLE_LENGTH} characters or fewer.` });
   }
-  if (data !== undefined && Buffer.byteLength(data, "utf8") > MAX_COVER_DATA_BYTES) {
-    return res.status(400).send({ error: "Cover content exceeds the 100 KB limit." });
+  if (data !== undefined && Buffer.byteLength(data, "utf8") > MAX_PAGE_DATA_BYTES) {
+    return res.status(400).send({ error: "Page content exceeds the 100 KB limit." });
   }
 
   const update = {};
   if (data !== undefined) update.data = data;
   if (title !== undefined) update.title = title;
 
-  Cover.findByIdAndUpdate(cid, { $set: update }, { new: true })
-    .then(cover => {
-      if (!cover) {
+  Page.findByIdAndUpdate(pid, { $set: update }, { returnDocument: 'after' })
+    .then(page => {
+      if (!page) {
         res.status(404).send();
       } else {
-        res.send(cover);
+        res.send(page);
       }
     })
     .catch(error => handleSaveError(error, res));
 });
 
-app.delete("/covers/:cid", requireAuth, (req, res) => {
-  const cid = req.params.cid;
+app.delete("/pages/:pid", requireAuth, (req, res) => {
+  const pid = req.params.pid;
 
-  if (!mongoose.Types.ObjectId.isValid(cid)) {
+  if (!mongoose.Types.ObjectId.isValid(pid)) {
     return res.status(404).send();
   }
 
-  Cover.findByIdAndDelete(cid)
-    .then(cover => {
-      if (!cover) {
+  Page.findByIdAndDelete(pid)
+    .then(page => {
+      if (!page) {
         res.status(404).send();
       } else {
-        res.send(cover);
+        res.send(page);
       }
     })
     .catch(error => {

@@ -1,6 +1,6 @@
 import { getState, setState } from "../store";
 import { setEmptyState, autoHide } from "./helpers";
-import { getUserCovers } from "./cover";
+import { getUserPages } from "./page";
 
 export const readCookie = () => {
   fetch("/users/check-session")
@@ -11,7 +11,7 @@ export const readCookie = () => {
       if (json?.currentUser) {
         setState("currentUser", json.currentUser);
         setState("userID", json.userID);
-        getUserCovers();
+        getUserPages();
       }
     })
     .catch(() => {});
@@ -47,7 +47,7 @@ export const login = () => {
       if (json.currentUser !== undefined) {
         setState("userID", json.userID);
         setState("currentUser", json.currentUser);
-        getUserCovers();
+        getUserPages();
         setState("loginClick", false);
       }
     })
@@ -57,7 +57,7 @@ export const login = () => {
         autoHide("loginError");
       }
       setState("loginClick", false);
-      console.log(error);
+      console.error(error);
     });
 };
 
@@ -91,7 +91,7 @@ export const register = event => {
       }
     })
     .catch(error => {
-      console.log(error);
+      console.error(error);
     });
 };
 
@@ -103,6 +103,6 @@ export const logout = () => {
       setEmptyState();
     })
     .catch(error => {
-      console.log(error);
+      console.error(error);
     });
 };

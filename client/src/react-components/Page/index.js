@@ -11,12 +11,11 @@ import useAppStore from "../../store";
 import "./../../App.css";
 import "./styles.css";
 
-export default function Cover() {
+export default function PageDashboard() {
   const {
-    cover,
-    coverError,
-    coverSuccess,
-    userCovers,
+    pageError,
+    pageSuccess,
+    userPages,
     info,
     deleteC,
     saveSuccess,
@@ -24,10 +23,9 @@ export default function Cover() {
     deleteSuccess
   } = useAppStore(
     useShallow(state => ({
-      cover: state.cover,
-      coverError: state.coverError,
-      coverSuccess: state.coverSuccess,
-      userCovers: state.userCovers,
+      pageError: state.pageError,
+      pageSuccess: state.pageSuccess,
+      userPages: state.userPages,
       info: state.info,
       deleteC: state.deleteC,
       saveSuccess: state.saveSuccess,
@@ -38,15 +36,15 @@ export default function Cover() {
 
   return (
     <Fragment>
-      <Container className="cover" maxWidth={false} disableGutters={true}>
-        <VerticalDrawer userCovers={userCovers} />
+      <Container className="page" maxWidth={false} disableGutters={true}>
+        <VerticalDrawer userPages={userPages} />
       </Container>
 
-      {coverError && (
-        <Snackbar severity="error" message={coverError} />
+      {pageError && (
+        <Snackbar severity="error" message={pageError} />
       )}
 
-      {coverSuccess === true && (
+      {pageSuccess === true && (
         <Snackbar severity="success" message="Successfully created!" />
       )}
       {saveSuccess === true && (
@@ -57,7 +55,7 @@ export default function Cover() {
       )}
 
       {info === true && <Info currentUser={currentUser} />}
-      {deleteC === true && <Delete title={cover.title} />}
+      {deleteC === true && <Delete />}
     </Fragment>
   );
 }

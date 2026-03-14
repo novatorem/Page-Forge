@@ -9,7 +9,7 @@ export default function MainView() {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/dashboard/:coverId" element={<Dashboard />} />
+        <Route path="/dashboard/:pageId" element={<Dashboard />} />
         <Route path="*" element={<div>404 Not found</div>} />
       </Routes>
     </BrowserRouter>

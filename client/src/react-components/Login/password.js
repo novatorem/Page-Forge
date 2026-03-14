@@ -34,7 +34,7 @@ export default function InputAdornments(props) {
       value={values.password}
       name="password"
       margin="none"
-      className="login__input app__input app__horizontal-center"
+      className="login__input app__horizontal-center"
       onChange={handleChange("password")}
       onKeyDown={e => {
         if (e.key === 'Enter') {

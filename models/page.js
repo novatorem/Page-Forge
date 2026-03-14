@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const Cover = mongoose.model("Cover", {
+const Page = mongoose.model("Page", {
   title: {
     type: String,
     required: true,
@@ -16,4 +16,4 @@ const Cover = mongoose.model("Cover", {
   }
 });
 
-module.exports = { Cover };
+module.exports = { Page };

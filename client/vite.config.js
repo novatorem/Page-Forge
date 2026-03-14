@@ -18,10 +18,23 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/users': 'http://localhost:3001',
-      '/covers': 'http://localhost:3001'
+      '/pages': 'http://localhost:3001'
     }
   },
   build: {
-    outDir: 'build'
+    outDir: 'build',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor code into stable chunks that can be cached independently
+          // of app code changes. React + router rarely change; MUI rarely changes;
+          // dnd-kit is isolated so it doesn't bloat the MUI chunk.
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-mui': ['@mui/material', '@emotion/react', '@emotion/styled'],
+          'vendor-mui-icons': ['@mui/icons-material'],
+          'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities']
+        }
+      }
+    }
   }
 });

@@ -18,11 +18,15 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #161616;
+  background-color: var(--bg-base);
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 24px 24px;
+  /* Scoped variables used only within the login layout */
+  --login-button-radius: 0.7rem;
+  --login-max-width: 758px;
+  --login-max-height: 420px;
 }
 
 .login__bg-image::before,
@@ -33,6 +37,7 @@
   filter: blur(90px);
   opacity: 0.45;
   pointer-events: none;
+  will-change: transform;
 }
 
 .login__bg-image::before {
@@ -41,7 +46,6 @@
   top: 10%;
   left: 6%;
   background: #0367a6;
-  animation: glow-left 13s ease-in-out infinite alternate;
 }
 
 .login__bg-image::after {
@@ -50,8 +54,17 @@
   top: 8%;
   right: 6%;
   background: #008997;
-  animation: glow-right 10s ease-in-out infinite alternate;
-  animation-delay: -5s;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .login__bg-image::before {
+    animation: glow-left 13s ease-in-out infinite alternate;
+  }
+
+  .login__bg-image::after {
+    animation: glow-right 10s ease-in-out infinite alternate;
+    animation-delay: -5s;
+  }
 }
 
 @keyframes glow-left {
@@ -126,40 +139,15 @@
   width: 100%;
 } */
 
-:root {
-	/* COLORS */
-	--white: #121212;
-	--gray: #333;
-	--blue: #0367a6;
-	--lightblue: #008997;
-
-	/* RADII */
-	--button-radius: 0.7rem;
-
-	/* SIZES */
-	--max-width: 758px;
-	--max-height: 420px;
-
-	font-size: 16px;
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-		Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-}
-
-.link {
-	color: var(--gray);
-	font-size: 0.9rem;
-	margin: 1.5rem 0;
-	text-decoration: none;
-}
 
 .container {
   background: rgba(10, 10, 14, 0.78);
-	border-radius: var(--button-radius);
+	border-radius: var(--login-button-radius);
 	box-shadow: 0 0.9rem 1.7rem rgba(0,0,0,.25),
     0 0.7rem 0.7rem rgba(0,0,0,.22),
     0 -1rem 1rem rgba(0,0,0,.24);
-	height: var(--max-height);
-	max-width: var(--max-width);
+	height: var(--login-max-height);
+	max-width: var(--login-max-width);
 	overflow: hidden;
 	position: relative;
 	z-index: 1;
@@ -292,8 +280,9 @@
 	transform: scale(0.95);
 }
 
-.btn:focus {
-	outline: none;
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 225, 255, 0.55);
 }
 
 .form {
@@ -308,19 +297,11 @@
 	box-sizing: border-box;
 }
 
-.input {
-	background-color: #fff;
-	border: none;
-	padding: 0.9rem 0.9rem;
-	margin: 0.5rem 0;
-	width: 100%;
-}
-
 @media (max-width: 600px) {
   .container {
     width: 95%;
     height: auto;
-    min-height: var(--max-height);
+    min-height: var(--login-max-height);
   }
 
   .login__bg-image::before {
