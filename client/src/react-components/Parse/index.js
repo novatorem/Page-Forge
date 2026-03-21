@@ -366,7 +366,7 @@ const Parse = forwardRef(function Parse(props, ref) {
   useImperativeHandle(ref, () => ({ copy, print }));
 
   return (
-    <MUITypography component="div" align="left" style={{ whiteSpace: "pre-line" }}>
+    <MUITypography component="div" align="left" style={{ whiteSpace: "pre-line" }} sx={props.sx}>
       {data}
     </MUITypography>
   );

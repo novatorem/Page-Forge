@@ -11,6 +11,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import DoneIcon from "@mui/icons-material/Done";
+import SaveIcon from "@mui/icons-material/Save";
 import PrintIcon from "@mui/icons-material/Print";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -34,13 +35,15 @@ const MUITextField = styled(TextField)({
     alignItems: "flex-start",
     flex: 1,
     overflowY: "auto",
+    padding: 0,
   },
   "& .MuiOutlinedInput-notchedOutline": {
     border: "none"
   },
   "& textarea": {
     outline: "none",
-    resize: "none"
+    resize: "none",
+    padding: 0,
   },
   "& textarea::placeholder": {
     opacity: 0.4,
@@ -56,7 +59,7 @@ export default function Page(props) {
   const [data, setData] = useState(page.data);
   const [visibility, setVisibility] = useState(true);
   const [activePanel, setActivePanel] = useState("true");
-  const [cIcon, setCIcon] = useState(<FileCopyIcon />);
+  const [cIcon, setCIcon] = useState(<FileCopyIcon fontSize="small" />);
   const [saveStatus, setSaveStatus] = useState("idle");
   const parseRef = useRef(null);
   const autoSaveTimer = useRef(null);
@@ -160,8 +163,15 @@ export default function Page(props) {
 
   const handleCopy = () => {
     parseRef.current?.copy();
-    setCIcon(<DoneIcon />);
-    setTimeout(() => setCIcon(<FileCopyIcon />), 1250);
+    setCIcon(<DoneIcon fontSize="small" />);
+    setTimeout(() => setCIcon(<FileCopyIcon fontSize="small" />), 1250);
+  };
+
+  const handleSave = () => {
+    if (!page._id) return;
+    clearTimeout(autoSaveTimer.current);
+    saveUserPage();
+    setSaveStatus("idle");
   };
 
   const handlePrint = () => parseRef.current?.print();
@@ -177,30 +187,39 @@ export default function Page(props) {
   const showTrue = isMobile ? activePanel === "true" : true;
 
   const forgePaper = (
-    <Paper sx={{ padding: "16px 20px", height: "100%", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column" }} elevation={0}>
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {!isMobile && <Typography variant="h6" noWrap>Forge</Typography>}
-          {page._id && saveStatus !== "idle" && (
-            <Typography
-              key={saveStatus}
-              variant="caption"
-              color={saveStatus === "saved" ? "success.main" : "text.secondary"}
-              aria-live="polite"
-              aria-atomic="true"
-              sx={{ animation: "fade-slide-up 180ms var(--ease-out-quart) both" }}
-            >
-              {saveStatusLabel}
-            </Typography>
-          )}
-        </Box>
-        {!isMobile && (
-          <IconButton size="small" onClick={handleVisibility} color="primary" aria-label="Hide editor">
-            <VisibilityOffIcon fontSize="small" />
-          </IconButton>
-        )}
-      </Box>
-      {!isMobile && <Divider />}
+    <Paper sx={{ padding: isMobile ? "8px 12px" : "16px 20px", height: "100%", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column" }} elevation={0}>
+      {!isMobile && (
+        <>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Typography variant="h6" noWrap>Forge</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              {page._id && (
+                <>
+                  {saveStatus !== "idle" && (
+                    <Typography
+                      key={saveStatus}
+                      variant="caption"
+                      color={saveStatus === "saved" ? "success.main" : "text.secondary"}
+                      aria-live="polite"
+                      aria-atomic="true"
+                      sx={{ animation: "fade-slide-up 180ms var(--ease-out-quart) both" }}
+                    >
+                      {saveStatusLabel}
+                    </Typography>
+                  )}
+                  <IconButton size="small" color="primary" onClick={handleSave} aria-label="Save page">
+                    <SaveIcon fontSize="small" />
+                  </IconButton>
+                </>
+              )}
+              <IconButton size="small" onClick={handleVisibility} color="primary" aria-label="Hide editor">
+                <VisibilityOffIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Box>
+          <Divider />
+        </>
+      )}
       <MUITextField
         id="standard-multiline-flexible"
         multiline={true}
@@ -215,25 +234,29 @@ export default function Page(props) {
   );
 
   const truePaper = (
-    <Paper sx={{ padding: "16px 20px", height: "100%", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column" }} elevation={0}>
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        {!isMobile && <Typography variant="h6" noWrap>True</Typography>}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: isMobile ? "auto" : 0 }}>
-          {!isMobile && !visibility && (
-            <IconButton size="small" onClick={handleVisibility} color="primary" aria-label="Show editor">
-              <VisibilityIcon fontSize="small" />
-            </IconButton>
-          )}
-          <IconButton size={isMobile ? "medium" : "small"} color="primary" onClick={handlePrint} aria-label="Print page">
-            <PrintIcon fontSize="small" />
-          </IconButton>
-          <Button size="small" color="primary" variant="text" startIcon={cIcon} onClick={handleCopy} sx={isMobile ? { minHeight: 44, px: 1.5 } : undefined}>
-            Copy
-          </Button>
-        </Box>
-      </Box>
-      {!isMobile && <Divider />}
-      <Parse ref={parseRef} data={data} />
+    <Paper sx={{ padding: isMobile ? "8px 12px" : "16px 20px", height: "100%", boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column" }} elevation={0}>
+      {!isMobile && (
+        <>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Typography variant="h6" noWrap>True</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              {!visibility && (
+                <IconButton size="small" onClick={handleVisibility} color="primary" aria-label="Show editor">
+                  <VisibilityIcon fontSize="small" />
+                </IconButton>
+              )}
+              <IconButton size="small" color="primary" onClick={handlePrint} aria-label="Print page">
+                <PrintIcon fontSize="small" />
+              </IconButton>
+              <IconButton size="small" color="primary" onClick={handleCopy} aria-label="Copy page">
+                {cIcon}
+              </IconButton>
+            </Box>
+          </Box>
+          <Divider />
+        </>
+      )}
+      <Parse ref={parseRef} data={data} sx={{ marginTop: isMobile ? "8px" : "16px" }} />
     </Paper>
   );
 
@@ -243,15 +266,46 @@ export default function Page(props) {
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {isMobile && (
-        <Tabs
-          value={activePanel}
-          onChange={(_, v) => setActivePanel(v)}
-          sx={{ minHeight: 44, mb: 1 }}
-          TabIndicatorProps={{ style: { height: 2 } }}
-        >
-          <Tab label="Forge" value="forge" sx={{ minHeight: 44, py: 0.75 }} />
-          <Tab label="True" value="true" sx={{ minHeight: 44, py: 0.75 }} />
-        </Tabs>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+          <Tabs
+            value={activePanel}
+            onChange={(_, v) => setActivePanel(v)}
+            sx={{ minHeight: 44 }}
+            TabIndicatorProps={{ style: { height: 2 } }}
+          >
+            <Tab label="Forge" value="forge" sx={{ minHeight: 44, py: 0.75 }} />
+            <Tab label="True" value="true" sx={{ minHeight: 44, py: 0.75 }} />
+          </Tabs>
+          {activePanel === "true" && (
+            <Box sx={{ display: "flex", alignItems: "center", px: 1 }}>
+              <IconButton size="medium" color="primary" onClick={handlePrint} aria-label="Print page">
+                <PrintIcon fontSize="small" />
+              </IconButton>
+              <IconButton size="medium" color="primary" onClick={handleCopy} aria-label="Copy page">
+                {cIcon}
+              </IconButton>
+            </Box>
+          )}
+          {activePanel === "forge" && page._id && (
+            <Box sx={{ display: "flex", alignItems: "center", px: 1 }}>
+              {saveStatus !== "idle" && (
+                <Typography
+                  key={saveStatus}
+                  variant="caption"
+                  color={saveStatus === "saved" ? "success.main" : "text.secondary"}
+                  aria-live="polite"
+                  aria-atomic="true"
+                  sx={{ animation: "fade-slide-up 180ms var(--ease-out-quart) both", mr: 1 }}
+                >
+                  {saveStatusLabel}
+                </Typography>
+              )}
+              <IconButton size="medium" color="primary" onClick={handleSave} aria-label="Save page">
+                <SaveIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
+        </Box>
       )}
       <Box sx={{
         display: "grid",
