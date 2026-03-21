@@ -43,8 +43,6 @@ export default function Info(props) {
         <DialogTitle id="max-width-dialog-title">Page Forge</DialogTitle>
         <Divider />
         <DialogContent>
-          <DialogContentText>Hi there, {props.currentUser}!</DialogContentText>
-          <br /> <br />
           <TableContainer component={Paper}>
             <Table aria-label="info table">
               <TableHead>

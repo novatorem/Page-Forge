@@ -37,30 +37,6 @@ export default function EmptyState(props) {
     setState("newPage", true);
   };
 
-  if (props.userPages?.length > 0) {
-    return (
-      <Box sx={centerBox}>
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          sx={{ animation: "fade-slide-up 250ms var(--ease-out-quart) both" }}
-        >
-          Select a page from the sidebar to get started.
-        </Typography>
-        <Button
-          variant="outlined"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleNew}
-          sx={{ animation: "fade-slide-up 250ms var(--ease-out-quart) 60ms both" }}
-        >
-          New page
-        </Button>
-      </Box>
-    );
-  }
-
-  // New user: full onboarding with feature reference
   return (
     <Box sx={{ ...centerBox, gap: 3 }}>
       <Box sx={{ animation: "fade-slide-up 350ms var(--ease-out-quart) both" }}>

@@ -41,7 +41,7 @@ import EmptyState from "../Shared/EmptyState";
 import ErrorBoundary from "../Shared/ErrorBoundary";
 import { setState, getState, useAppStore } from "../../store";
 import { logout } from "../../actions/user";
-import { saveUserPage, renameUserPage, duplicateUserPage, getUserPages } from "../../actions/page";
+import { renameUserPage, duplicateUserPage, getUserPages } from "../../actions/page";
 
 const drawerWidth = 175;
 
@@ -296,12 +296,6 @@ export default function VerticalDrawer(props) {
               {title}
             </Typography>
           )}
-
-          {page ? (
-            <IconButton aria-label="save" onClick={savePage}>
-              <SaveIcon />
-            </IconButton>
-          ) : null}
 
           <IconButton
             aria-label="more"
